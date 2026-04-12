@@ -105,7 +105,7 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
       case 'reading': return `Reading ${state.fileName}...`;
       case 'parsing': return `Parsing ${state.fileName}...`;
       case 'success': return `${state.fileName} — ${state.rowCount} rows loaded`;
-      case 'error': return state.error;
+      case 'error': return state.error.replace(/^DRM_PROTECTED:\s*/, '');
       default: return 'No file selected';
     }
   };
@@ -145,7 +145,16 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
               {/* Error Message */}
               {hasError && (
                 <div className="upload-error">
-                  <span className="upload-error__text">{state.error}</span>
+                  <span className="upload-error__text">{state.error.replace(/^DRM_PROTECTED:\s*/, '')}</span>
+                  {state.error.startsWith('DRM_PROTECTED:') && (
+                    <a
+                      href="/convert-excel.ps1"
+                      download="convert-excel.ps1"
+                      className="btn btn--primary upload-error__converter-btn"
+                    >
+                      ⬇ Download Converter Script
+                    </a>
+                  )}
                 </div>
               )}
 

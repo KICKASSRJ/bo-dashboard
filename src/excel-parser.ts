@@ -27,6 +27,15 @@ export interface ParseResult<T> {
   rowCount: number;
 }
 
+const DRM_FILE_ERROR =
+  'DRM_PROTECTED: This file is protected by Microsoft Information Protection (DRM). ' +
+  'The data inside is encrypted and cannot be read directly.\n\n' +
+  'To fix this automatically:\n' +
+  '1. Click "Download Converter" below to get the helper script\n' +
+  '2. Double-click the downloaded .ps1 file\n' +
+  '3. Select your SAP Excel files in the dialog\n' +
+  '4. Upload the newly created "_converted.xlsx" files here';
+
 const UNREADABLE_FILE_ERROR =
   'Unable to read this Excel file. This can happen when:\n' +
   '• The file was exported from SAP in a legacy format\n' +
@@ -39,10 +48,32 @@ const UNREADABLE_FILE_ERROR =
   '4. Click Save\n' +
   '5. Upload the newly saved file here';
 
+// CFB/OLE2 magic bytes: D0 CF 11 E0
+const CFB_HEADER = [0xd0, 0xcf, 0x11, 0xe0];
+
+function isCfbFile(buf: ArrayBuffer): boolean {
+  const bytes = new Uint8Array(buf);
+  return bytes.length >= 4 &&
+    bytes[0] === CFB_HEADER[0] && bytes[1] === CFB_HEADER[1] &&
+    bytes[2] === CFB_HEADER[2] && bytes[3] === CFB_HEADER[3];
+}
+
+function isDrmProtected(buf: ArrayBuffer): boolean {
+  if (!isCfbFile(buf)) return false;
+  try {
+    // Parse the CFB container and check for DRM streams
+    const cfb = XLSX.CFB.read(new Uint8Array(buf), { type: 'array' });
+    return cfb.FullPaths.some((p: string) =>
+      p.includes('DRMEncrypted') || p.includes('EncryptionInfo')
+    );
+  } catch {
+    return false;
+  }
+}
+
 function arrayBufferToBinaryString(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
   const chunks: string[] = [];
-  // Process in chunks to avoid call stack overflow on large files
   for (let i = 0; i < bytes.length; i += 8192) {
     const slice = bytes.subarray(i, Math.min(i + 8192, bytes.length));
     chunks.push(String.fromCharCode(...slice));
@@ -51,16 +82,16 @@ function arrayBufferToBinaryString(buf: ArrayBuffer): string {
 }
 
 function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
+  // Fast check: DRM-protected files cannot be read in the browser
+  if (isDrmProtected(file)) {
+    throw new Error(DRM_FILE_ERROR);
+  }
+
   const strategies: { type: string; read: () => XLSX.WorkBook }[] = [
-    // Strategy 1: ArrayBuffer (standard modern approach)
     { type: 'array', read: () => XLSX.read(file, { type: 'array' }) },
-    // Strategy 2: Uint8Array (handles some SAP export formats better)
     { type: 'buffer', read: () => XLSX.read(new Uint8Array(file), { type: 'array' }) },
-    // Strategy 3: Binary string (handles old OLE2/BIFF .xls formats)
     { type: 'binary', read: () => XLSX.read(arrayBufferToBinaryString(file), { type: 'binary' }) },
-    // Strategy 4: Base64 (last resort, handles encoding edge cases)
     { type: 'base64', read: () => XLSX.read(btoa(arrayBufferToBinaryString(file)), { type: 'base64' }) },
-    // Strategy 5: ArrayBuffer with empty password (encryption wrapper with no actual password)
     { type: 'password', read: () => XLSX.read(file, { type: 'array', password: '' }) },
   ];
 
@@ -68,14 +99,12 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
   for (const strategy of strategies) {
     try {
       const wb = strategy.read();
-      // Verify it actually has sheets
       if (wb.SheetNames.length > 0) return wb;
     } catch (e) {
       lastError = e;
     }
   }
 
-  // All strategies failed — give a helpful error
   const msg = lastError instanceof Error ? lastError.message : String(lastError);
   if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376') || msg.includes('password')) {
     throw new Error(UNREADABLE_FILE_ERROR);

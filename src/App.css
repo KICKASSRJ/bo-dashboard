@@ -435,6 +435,14 @@ body {
   white-space: pre-wrap;
 }
 
+.upload-error__converter-btn {
+  display: inline-flex;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+}
+
 .upload-success {
   background: var(--success-light);
   border: 1px solid var(--success);

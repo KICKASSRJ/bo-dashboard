@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { UploadedFiles } from '../types';
 import { parseEdidcFile, parseEkesFile, parseMsegFile, parseRsnFile } from '../excel-parser';
 
@@ -8,6 +8,14 @@ interface FileUploadProps {
 }
 
 type FileType = 'edidc' | 'mseg' | 'ekes' | 'rsn';
+type UploadStatus = 'idle' | 'reading' | 'parsing' | 'success' | 'error';
+
+interface FileState {
+  status: UploadStatus;
+  fileName: string;
+  error: string;
+  rowCount: number;
+}
 
 const FILE_CONFIG: { key: FileType; label: string; description: string }[] = [
   { key: 'edidc', label: 'EDIDC', description: 'IDoc Control Records — contains Message Type, IDoc number, status, EDI Archive Key, etc.' },
@@ -16,44 +24,90 @@ const FILE_CONFIG: { key: FileType; label: string; description: string }[] = [
   { key: 'rsn', label: 'RSN Header', description: 'Return Service Notification — contains RSN numbers for status verification.' },
 ];
 
+const INITIAL_FILE_STATE: FileState = { status: 'idle', fileName: '', error: '', rowCount: 0 };
+
 export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
+  const [fileStates, setFileStates] = useState<Record<FileType, FileState>>({
+    edidc: { ...INITIAL_FILE_STATE },
+    mseg: { ...INITIAL_FILE_STATE },
+    ekes: { ...INITIAL_FILE_STATE },
+    rsn: { ...INITIAL_FILE_STATE },
+  });
+
+  const updateFileState = (fileType: FileType, update: Partial<FileState>) => {
+    setFileStates(prev => ({ ...prev, [fileType]: { ...prev[fileType], ...update } }));
+  };
 
   const handleFileSelect = useCallback(async (fileType: FileType, event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const buffer = await file.arrayBuffer();
-    let result;
+    // Step 1: Reading file
+    updateFileState(fileType, { status: 'reading', fileName: file.name, error: '', rowCount: 0 });
 
-    switch (fileType) {
-      case 'edidc': result = parseEdidcFile(buffer); break;
-      case 'mseg': result = parseMsegFile(buffer); break;
-      case 'ekes': result = parseEkesFile(buffer); break;
-      case 'rsn': result = parseRsnFile(buffer); break;
-    }
+    try {
+      const buffer = await file.arrayBuffer();
 
-    if (result.errors.length > 0) {
-      alert(result.errors.join('\n'));
+      // Step 2: Parsing
+      updateFileState(fileType, { status: 'parsing' });
+
+      let result;
+      switch (fileType) {
+        case 'edidc': result = parseEdidcFile(buffer); break;
+        case 'mseg': result = parseMsegFile(buffer); break;
+        case 'ekes': result = parseEkesFile(buffer); break;
+        case 'rsn': result = parseRsnFile(buffer); break;
+      }
+
+      if (result.errors.length > 0) {
+        updateFileState(fileType, { status: 'error', error: result.errors.join('\n') });
+        if (fileInputRefs.current[fileType]) {
+          fileInputRefs.current[fileType]!.value = '';
+        }
+        return;
+      }
+
+      // Step 3: Success
+      updateFileState(fileType, { status: 'success', rowCount: result.data.length });
+      onFilesChange({ ...files, [fileType]: result.data });
+    } catch (err) {
+      updateFileState(fileType, {
+        status: 'error',
+        error: `Failed to process file: ${err instanceof Error ? err.message : 'Unknown error'}`,
+      });
       if (fileInputRefs.current[fileType]) {
         fileInputRefs.current[fileType]!.value = '';
       }
-      return;
     }
-
-    onFilesChange({ ...files, [fileType]: result.data });
   }, [files, onFilesChange]);
 
   const handleClear = useCallback((fileType: FileType) => {
     if (fileInputRefs.current[fileType]) {
       fileInputRefs.current[fileType]!.value = '';
     }
+    updateFileState(fileType, { ...INITIAL_FILE_STATE });
     onFilesChange({ ...files, [fileType]: null });
   }, [files, onFilesChange]);
 
-  const getRowCount = (fileType: FileType): number | null => {
-    const data = files[fileType];
-    return data ? data.length : null;
+  const getStatusIcon = (status: UploadStatus) => {
+    switch (status) {
+      case 'reading': return '📂';
+      case 'parsing': return '⚙️';
+      case 'success': return '✅';
+      case 'error': return '❌';
+      default: return '📁';
+    }
+  };
+
+  const getStatusText = (state: FileState) => {
+    switch (state.status) {
+      case 'reading': return `Reading ${state.fileName}...`;
+      case 'parsing': return `Parsing ${state.fileName}...`;
+      case 'success': return `${state.fileName} — ${state.rowCount} rows loaded`;
+      case 'error': return state.error;
+      default: return 'No file selected';
+    }
   };
 
   return (
@@ -65,16 +119,43 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
 
       <div className="upload-grid">
         {FILE_CONFIG.map(({ key, label, description }) => {
-          const rowCount = getRowCount(key);
-          const isLoaded = rowCount !== null;
+          const state = fileStates[key];
+          const isLoaded = files[key] !== null;
+          const isProcessing = state.status === 'reading' || state.status === 'parsing';
+          const hasError = state.status === 'error';
 
           return (
-            <div key={key} className={`upload-card ${isLoaded ? 'upload-card--loaded' : ''}`}>
+            <div key={key} className={`upload-card ${isLoaded ? 'upload-card--loaded' : ''} ${hasError ? 'upload-card--error' : ''} ${isProcessing ? 'upload-card--processing' : ''}`}>
               <div className="upload-card__header">
-                <h3>{label}</h3>
-                {isLoaded && <span className="badge badge--success">{rowCount} rows</span>}
+                <h3>{getStatusIcon(state.status)} {label}</h3>
+                {isLoaded && <span className="badge badge--success">{state.rowCount} rows</span>}
               </div>
               <p className="upload-card__desc">{description}</p>
+
+              {/* Status Progress Bar */}
+              {isProcessing && (
+                <div className="upload-progress">
+                  <div className="upload-progress__bar">
+                    <div className="upload-progress__fill upload-progress__fill--animated" />
+                  </div>
+                  <span className="upload-progress__text">{getStatusText(state)}</span>
+                </div>
+              )}
+
+              {/* Error Message */}
+              {hasError && (
+                <div className="upload-error">
+                  <span className="upload-error__text">{state.error}</span>
+                </div>
+              )}
+
+              {/* Success Status */}
+              {state.status === 'success' && isLoaded && (
+                <div className="upload-success">
+                  <span className="upload-success__text">{getStatusText(state)}</span>
+                </div>
+              )}
+
               <div className="upload-card__actions">
                 <input
                   ref={(el) => { fileInputRefs.current[key] = el; }}
@@ -83,19 +164,40 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
                   onChange={(e) => handleFileSelect(key, e)}
                   id={`file-${key}`}
                   className="file-input"
+                  disabled={isProcessing}
                 />
-                <label htmlFor={`file-${key}`} className="btn btn--primary">
-                  {isLoaded ? 'Replace File' : 'Choose File'}
+                <label htmlFor={`file-${key}`} className={`btn btn--primary ${isProcessing ? 'btn--disabled' : ''}`}>
+                  {isProcessing ? 'Processing...' : isLoaded ? 'Replace File' : 'Choose File'}
                 </label>
-                {isLoaded && (
-                  <button className="btn btn--danger" onClick={() => handleClear(key)}>
-                    Remove
+                {(isLoaded || hasError) && (
+                  <button className="btn btn--danger" onClick={() => handleClear(key)} disabled={isProcessing}>
+                    {hasError ? 'Dismiss' : 'Remove'}
                   </button>
                 )}
               </div>
             </div>
           );
         })}
+      </div>
+
+      {/* Upload Summary */}
+      <div className="upload-summary">
+        <h3>Upload Summary</h3>
+        <div className="upload-summary__grid">
+          {FILE_CONFIG.map(({ key, label }) => {
+            const state = fileStates[key];
+            const isLoaded = files[key] !== null;
+            return (
+              <div key={key} className={`upload-summary__item upload-summary__item--${state.status}`}>
+                <span className="upload-summary__icon">{getStatusIcon(state.status)}</span>
+                <span className="upload-summary__label">{label}</span>
+                <span className="upload-summary__status">
+                  {isLoaded ? `${state.rowCount} rows` : state.status === 'error' ? 'Error' : state.status === 'reading' || state.status === 'parsing' ? 'Processing...' : 'Not uploaded'}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

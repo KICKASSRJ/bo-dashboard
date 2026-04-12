@@ -27,32 +27,60 @@ export interface ParseResult<T> {
   rowCount: number;
 }
 
-const ENCRYPTED_FILE_ERROR =
-  'This file is encrypted or password-protected. SAP sometimes exports files with encryption enabled by default.\n\n' +
+const UNREADABLE_FILE_ERROR =
+  'Unable to read this Excel file. This can happen when:\n' +
+  '• The file was exported from SAP in a legacy format\n' +
+  '• The file uses an OLE2/CFB container wrapper\n' +
+  '• The file extension doesn\'t match its actual format\n\n' +
   'To fix this:\n' +
   '1. Open the file in Microsoft Excel\n' +
   '2. Go to File → Save As\n' +
   '3. Choose format: "Excel Workbook (.xlsx)"\n' +
-  '4. Click Save (this removes the encryption wrapper)\n' +
+  '4. Click Save\n' +
   '5. Upload the newly saved file here';
 
+function arrayBufferToBinaryString(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  const chunks: string[] = [];
+  // Process in chunks to avoid call stack overflow on large files
+  for (let i = 0; i < bytes.length; i += 8192) {
+    const slice = bytes.subarray(i, Math.min(i + 8192, bytes.length));
+    chunks.push(String.fromCharCode(...slice));
+  }
+  return chunks.join('');
+}
+
 function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
-  // Try reading normally first
-  try {
-    return XLSX.read(file, { type: 'array' });
-  } catch (e1) {
-    // If encrypted, try with empty password (common for SAP exports)
+  const strategies: { type: string; read: () => XLSX.WorkBook }[] = [
+    // Strategy 1: ArrayBuffer (standard modern approach)
+    { type: 'array', read: () => XLSX.read(file, { type: 'array' }) },
+    // Strategy 2: Uint8Array (handles some SAP export formats better)
+    { type: 'buffer', read: () => XLSX.read(new Uint8Array(file), { type: 'array' }) },
+    // Strategy 3: Binary string (handles old OLE2/BIFF .xls formats)
+    { type: 'binary', read: () => XLSX.read(arrayBufferToBinaryString(file), { type: 'binary' }) },
+    // Strategy 4: Base64 (last resort, handles encoding edge cases)
+    { type: 'base64', read: () => XLSX.read(btoa(arrayBufferToBinaryString(file)), { type: 'base64' }) },
+    // Strategy 5: ArrayBuffer with empty password (encryption wrapper with no actual password)
+    { type: 'password', read: () => XLSX.read(file, { type: 'array', password: '' }) },
+  ];
+
+  let lastError: unknown;
+  for (const strategy of strategies) {
     try {
-      return XLSX.read(file, { type: 'array', password: '' });
-    } catch {
-      // Check if it's the encryption error specifically
-      const msg = e1 instanceof Error ? e1.message : String(e1);
-      if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376')) {
-        throw new Error(ENCRYPTED_FILE_ERROR);
-      }
-      throw e1;
+      const wb = strategy.read();
+      // Verify it actually has sheets
+      if (wb.SheetNames.length > 0) return wb;
+    } catch (e) {
+      lastError = e;
     }
   }
+
+  // All strategies failed — give a helpful error
+  const msg = lastError instanceof Error ? lastError.message : String(lastError);
+  if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376') || msg.includes('password')) {
+    throw new Error(UNREADABLE_FILE_ERROR);
+  }
+  throw new Error(UNREADABLE_FILE_ERROR + '\n\nTechnical detail: ' + msg);
 }
 
 function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[] } | ParseResult<never> {

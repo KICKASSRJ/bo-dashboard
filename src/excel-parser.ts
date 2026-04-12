@@ -27,14 +27,63 @@ export interface ParseResult<T> {
   rowCount: number;
 }
 
-export function parseEdidcFile(file: ArrayBuffer): ParseResult<EdidcRecord> {
-  const wb = XLSX.read(file, { type: 'array' });
+const ENCRYPTED_FILE_ERROR =
+  'This file is encrypted or password-protected. SAP sometimes exports files with encryption enabled by default.\n\n' +
+  'To fix this:\n' +
+  '1. Open the file in Microsoft Excel\n' +
+  '2. Go to File → Save As\n' +
+  '3. Choose format: "Excel Workbook (.xlsx)"\n' +
+  '4. Click Save (this removes the encryption wrapper)\n' +
+  '5. Upload the newly saved file here';
+
+function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
+  // Try reading normally first
+  try {
+    return XLSX.read(file, { type: 'array' });
+  } catch (e1) {
+    // If encrypted, try with empty password (common for SAP exports)
+    try {
+      return XLSX.read(file, { type: 'array', password: '' });
+    } catch {
+      // Check if it's the encryption error specifically
+      const msg = e1 instanceof Error ? e1.message : String(e1);
+      if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376')) {
+        throw new Error(ENCRYPTED_FILE_ERROR);
+      }
+      throw e1;
+    }
+  }
+}
+
+function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[] } | ParseResult<never> {
+  let wb: XLSX.WorkBook;
+  try {
+    wb = safeReadWorkbook(file);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    return { data: [], errors: [msg], rowCount: 0 };
+  }
+
   const ws = wb.Sheets[wb.SheetNames[0]];
   const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
 
-  if (raw.length < 2) return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };
+  if (raw.length < 2) {
+    return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };
+  }
 
   const headers = (raw[0] as string[]).map(String);
+  return { raw, headers };
+}
+
+function isError<T>(result: { raw: unknown[][]; headers: string[] } | ParseResult<T>): result is ParseResult<T> {
+  return 'errors' in result && (result as ParseResult<T>).errors.length > 0;
+}
+
+export function parseEdidcFile(file: ArrayBuffer): ParseResult<EdidcRecord> {
+  const sheet = safeParseSheet(file);
+  if (isError(sheet)) return sheet as ParseResult<EdidcRecord>;
+
+  const { raw, headers } = sheet;
   const colMap = {
     messageType: findColumn(headers, 'Message Type', 'message type', 'msg type'),
     idocNumber: findColumn(headers, 'IDoc number', 'idoc number', 'idoc no', 'idoc no.'),
@@ -77,13 +126,10 @@ export function parseEdidcFile(file: ArrayBuffer): ParseResult<EdidcRecord> {
 }
 
 export function parseRsnFile(file: ArrayBuffer): ParseResult<RsnRecord> {
-  const wb = XLSX.read(file, { type: 'array' });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const sheet = safeParseSheet(file);
+  if (isError(sheet)) return sheet as ParseResult<RsnRecord>;
 
-  if (raw.length < 2) return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };
-
-  const headers = (raw[0] as string[]).map(String);
+  const { raw, headers } = sheet;
   const rsnCol = findColumn(headers, 'RSN', 'rsn', 'rsn number', 'rsn no');
 
   if (rsnCol < 0) {
@@ -108,13 +154,10 @@ export function parseRsnFile(file: ArrayBuffer): ParseResult<RsnRecord> {
 }
 
 export function parseEkesFile(file: ArrayBuffer): ParseResult<EkesRecord> {
-  const wb = XLSX.read(file, { type: 'array' });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const sheet = safeParseSheet(file);
+  if (isError(sheet)) return sheet as ParseResult<EkesRecord>;
 
-  if (raw.length < 2) return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };
-
-  const headers = (raw[0] as string[]).map(String);
+  const { raw, headers } = sheet;
   const purchDocCol = findColumn(headers, 'Purchasing document', 'purchasing document', 'purch doc', 'purchase document', 'po number');
   const refCol = findColumn(headers, 'Reference', 'reference', 'ref');
 
@@ -144,13 +187,10 @@ export function parseEkesFile(file: ArrayBuffer): ParseResult<EkesRecord> {
 }
 
 export function parseMsegFile(file: ArrayBuffer): ParseResult<MsegRecord> {
-  const wb = XLSX.read(file, { type: 'array' });
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const sheet = safeParseSheet(file);
+  if (isError(sheet)) return sheet as ParseResult<MsegRecord>;
 
-  if (raw.length < 2) return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };
-
-  const headers = (raw[0] as string[]).map(String);
+  const { raw, headers } = sheet;
   const poCol = findColumn(headers, 'Purchase order', 'purchase order', 'po', 'po number');
   const shortTextCol = findColumn(headers, 'Short text', 'short text', 'text', 'description');
 

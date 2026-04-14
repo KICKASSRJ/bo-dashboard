@@ -256,7 +256,8 @@ export function parseMsegFile(file: ArrayBuffer): ParseResult<MsegRecord> {
 
   const { raw, headers } = sheet;
   const poCol = findColumn(headers, 'Purchase order', 'purchase order', 'po', 'po number');
-  const shortTextCol = findColumn(headers, 'Short text', 'short text', 'text', 'description');
+  const shortTextCol = findColumn(headers, 'Short text', 'short text', 'text', 'description', 'sgtxt');
+  const matDocCol = findColumn(headers, 'Material Document', 'material document', 'MBLNR', 'mblnr', 'Mat. Doc.', 'mat. doc.', 'Material Doc.', 'material doc.', 'MatDoc', 'matdoc');
 
   const missing: string[] = [];
   if (poCol < 0) missing.push('Purchase order');
@@ -273,6 +274,7 @@ export function parseMsegFile(file: ArrayBuffer): ParseResult<MsegRecord> {
     const record: MsegRecord = {
       purchaseOrder: getCellValue(row, poCol),
       shortText: getCellValue(row, shortTextCol),
+      materialDocument: matDocCol >= 0 ? getCellValue(row, matDocCol) : '',
     };
     headers.forEach((h, idx) => {
       record[h.trim()] = getCellValue(row, idx);

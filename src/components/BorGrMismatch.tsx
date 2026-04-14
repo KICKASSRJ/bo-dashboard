@@ -17,19 +17,28 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
     // Find the Material Document column name dynamically from the first MSEG row
     let matDocKey = '';
     if (msegData.length > 0) {
-      const firstRow = msegData[0];
-      matDocKey = Object.keys(firstRow).find(k => {
-        const lk = k.toLowerCase().replace(/[^a-z]/g, '');
-        return lk === 'mblnr' || lk === 'materialdocument' || lk === 'materialdoc' || lk === 'matdoc';
-      }) || '';
+      const keys = Object.keys(msegData[0]);
+      // Try exact well-known names first (case-insensitive)
+      const exactNames = ['MBLNR', 'Material Document', 'Material Doc.', 'Mat. Doc.', 'Mat.Doc.', 'MatDoc'];
+      matDocKey = keys.find(k => exactNames.some(n => n.toLowerCase() === k.toLowerCase())) || '';
+      // Fallback: any key containing both "material" and "doc", or just "mblnr"
+      if (!matDocKey) {
+        matDocKey = keys.find(k => {
+          const lk = k.toLowerCase();
+          return lk.includes('mblnr') || (lk.includes('material') && lk.includes('doc'));
+        }) || '';
+      }
+      if (matDocKey) console.log('[BOR/GR Mismatch] Material Document column:', matDocKey);
+      else console.warn('[BOR/GR Mismatch] Could not find Material Document column. Available MSEG keys:', keys.join(', '));
     }
 
-    // Build a lookup: key = purchaseOrder (lowercase) → array of { shortText, materialDocument }
+    // Build a lookup: key = purchaseOrder (lowercase) → array of MSEG row details
     const msegIndex = new Map<string, { shortText: string; materialDocument: string }[]>();
     for (const row of msegData) {
       const po = row.purchaseOrder.trim().toLowerCase();
       if (!msegIndex.has(po)) msegIndex.set(po, []);
-      const matDoc = matDocKey ? (row[matDocKey] || '') : '';
+      // Use the explicit materialDocument field first, then fall back to dynamic key
+      const matDoc = row.materialDocument || (matDocKey ? (row[matDocKey] || '') : '');
       msegIndex.get(po)!.push({
         shortText: row.shortText.trim().toLowerCase(),
         materialDocument: matDoc.trim(),

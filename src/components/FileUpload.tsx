@@ -26,14 +26,23 @@ const FILE_CONFIG: { key: FileType; label: string; description: string }[] = [
 
 const INITIAL_FILE_STATE: FileState = { status: 'idle', fileName: '', error: '', rowCount: 0 };
 
+function deriveFileStates(files: UploadedFiles): Record<FileType, FileState> {
+  const keys: FileType[] = ['edidc', 'mseg', 'ekes', 'rsn'];
+  const states = {} as Record<FileType, FileState>;
+  for (const key of keys) {
+    const data = files[key];
+    if (data && data.length > 0) {
+      states[key] = { status: 'success', fileName: `${key.toUpperCase()}.xlsx`, error: '', rowCount: data.length };
+    } else {
+      states[key] = { ...INITIAL_FILE_STATE };
+    }
+  }
+  return states;
+}
+
 export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
-  const [fileStates, setFileStates] = useState<Record<FileType, FileState>>({
-    edidc: { ...INITIAL_FILE_STATE },
-    mseg: { ...INITIAL_FILE_STATE },
-    ekes: { ...INITIAL_FILE_STATE },
-    rsn: { ...INITIAL_FILE_STATE },
-  });
+  const [fileStates, setFileStates] = useState<Record<FileType, FileState>>(() => deriveFileStates(files));
 
   const updateFileState = (fileType: FileType, update: Partial<FileState>) => {
     setFileStates(prev => ({ ...prev, [fileType]: { ...prev[fileType], ...update } }));

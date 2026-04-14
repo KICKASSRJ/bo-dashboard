@@ -167,7 +167,6 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
             <tr>
               <th>BO</th>
               <th>BOR PID</th>
-              <th>Material Document</th>
               <th>GR PID</th>
               <th>Status</th>
             </tr>
@@ -179,7 +178,6 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
               <tr key={i} className={isMismatch ? 'row--error' : 'row--success'}>
                 <td>{row.bo}</td>
                 <td>{row.borPid}</td>
-                <td>{row.materialDocument}</td>
                 <td>{row.grPid}</td>
                 <td>
                   <span className={`status-pill ${isMismatch ? 'status-pill--error' : 'status-pill--success'}`}>

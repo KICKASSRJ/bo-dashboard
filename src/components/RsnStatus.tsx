@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { RsnRecord, RsnResult } from '../types';
 
 interface RsnStatusProps {
@@ -9,6 +9,13 @@ export default function RsnStatus({ data }: RsnStatusProps) {
   const [input, setInput] = useState('');
   const [results, setResults] = useState<RsnResult[]>([]);
   const [searched, setSearched] = useState(false);
+
+  // Get unique sample RSN values from uploaded data
+  const sampleRsns = useMemo(() => {
+    if (!data) return [];
+    const unique = [...new Set(data.map(r => r.rsn.trim()).filter(Boolean))];
+    return unique.slice(0, 5);
+  }, [data]);
 
   const handleSearch = useCallback(() => {
     if (!data || !input.trim()) return;
@@ -65,6 +72,19 @@ export default function RsnStatus({ data }: RsnStatusProps) {
           Check Status
         </button>
       </div>
+
+      {sampleRsns.length > 0 && !searched && (
+        <div className="sample-data">
+          <p className="sample-data__label">Sample RSN values from uploaded data (click to use):</p>
+          <div className="sample-data__list">
+            {sampleRsns.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setInput(prev => prev ? `${prev}, ${s}` : s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {searched && (
         <div className="results-section">

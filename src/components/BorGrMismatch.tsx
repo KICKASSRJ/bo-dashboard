@@ -165,20 +165,21 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
                     </tr>
                   </thead>
                   <tbody>
-                    {results.map((row, i) => (
-                      <tr key={i} className={row.mismatch !== '—' ? 'row--error' : ''}>
+                    {results.map((row, i) => {
+                      const isMismatch = row.mismatch.includes('Mismatch');
+                      return (
+                      <tr key={i} className={isMismatch ? 'row--error' : 'row--success'}>
                         <td>{row.bo}</td>
                         <td>{row.borPid}</td>
                         <td>{row.grPid}</td>
                         <td>
-                          {row.mismatch !== '—' ? (
-                            <span className="status-pill status-pill--error">{row.mismatch}</span>
-                          ) : (
-                            <span className="status-pill status-pill--success">No Mismatch</span>
-                          )}
+                          <span className={`status-pill ${isMismatch ? 'status-pill--error' : 'status-pill--success'}`}>
+                            {row.mismatch}
+                          </span>
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

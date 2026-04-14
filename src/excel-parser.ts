@@ -194,7 +194,7 @@ export function parseRsnFile(file: ArrayBuffer): ParseResult<RsnRecord> {
   if (isError(sheet)) return sheet as ParseResult<RsnRecord>;
 
   const { raw, headers } = sheet;
-  const rsnCol = findColumn(headers, 'RSN', 'rsn', 'rsn number', 'rsn no');
+  const rsnCol = findColumn(headers, 'RSN', 'rsn', 'rsn number', 'rsn no', 'CSC Parent Serial Number', 'csc parent serial number');
 
   if (rsnCol < 0) {
     return { data: [], errors: ["Expected column not found — Missing: 'RSN'. Please upload a valid RSN header export."], rowCount: 0 };

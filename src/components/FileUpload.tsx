@@ -114,7 +114,7 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
     <div className="feature-panel">
       <h2>SAP Input Data</h2>
       <p className="feature-description">
-        Upload Excel files exported from SAP ECC. Each file powers specific features in the dashboard.
+        Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.
       </p>
 
       <div className="upload-grid">

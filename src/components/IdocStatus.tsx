@@ -52,15 +52,15 @@ export default function IdocStatus({ data }: IdocStatusProps) {
   if (!data) {
     return (
       <div className="feature-panel">
-        <h2>F2 — IDoc Status</h2>
-        <p className="empty-state">Please upload an EDIDC file first (F1 — Upload tab).</p>
+        <h2>IDoc Status</h2>
+        <p className="empty-state">Please upload an EDIDC file first.</p>
       </div>
     );
   }
 
   return (
     <div className="feature-panel">
-      <h2>F2 — IDoc Status</h2>
+      <h2>IDoc Status</h2>
       <p className="feature-description">
         All records from the uploaded EDIDC file. Click column headers to sort. Use the filter to search.
       </p>

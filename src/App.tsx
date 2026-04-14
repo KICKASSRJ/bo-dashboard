@@ -7,7 +7,18 @@ import RsnStatus from './components/RsnStatus';
 import BorGrMismatch from './components/BorGrMismatch';
 import './App.css';
 
+type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
+
+const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = [
+  { id: 'upload', icon: '📂', title: 'Upload Input Data', desc: 'Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.' },
+  { id: 'idoc', icon: '📋', title: 'IDoc Status', desc: 'View all IDoc records with status codes, sortable and filterable.' },
+  { id: 'cid', icon: '🔍', title: 'CID Processing Status', desc: 'Look up CID processing status by EDI Archive Key.' },
+  { id: 'rsn', icon: '📦', title: 'RSN Status', desc: 'Batch verify RSN numbers against SAP ECC data.' },
+  { id: 'bor-gr', icon: '⚠️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
+];
+
 function App() {
+  const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [files, setFiles] = useState<UploadedFiles>({
     edidc: null,
     mseg: null,
@@ -29,32 +40,40 @@ function App() {
         </div>
       </header>
 
-      <main className="main-content dashboard">
-        <section className="dashboard-section">
-          <FileUpload files={files} onFilesChange={setFiles} />
-        </section>
-
-        <div className="dashboard-grid">
-          <section className="dashboard-section dashboard-card">
-            <IdocStatus data={files.edidc} />
-          </section>
-
-          <section className="dashboard-section dashboard-card">
-            <CidStatus data={files.edidc} />
-          </section>
-
-          <section className="dashboard-section dashboard-card">
-            <RsnStatus data={files.rsn} />
-          </section>
-
-          <section className="dashboard-section dashboard-card">
-            <BorGrMismatch ekesData={files.ekes} msegData={files.mseg} />
-          </section>
-        </div>
+      <main className="main-content">
+        {activePanel === null ? (
+          <div className="dashboard-home">
+            <h2 className="dashboard-home__title">What would you like to do?</h2>
+            <div className="dashboard-home__grid">
+              {CARDS.map(card => (
+                <button
+                  key={card.id}
+                  className="dashboard-home__card"
+                  onClick={() => setActivePanel(card.id)}
+                >
+                  <span className="dashboard-home__icon">{card.icon}</span>
+                  <h3 className="dashboard-home__card-title">{card.title}</h3>
+                  <p className="dashboard-home__card-desc">{card.desc}</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="panel-view">
+            <button className="btn btn--back" onClick={() => setActivePanel(null)}>
+              ← Back to Dashboard
+            </button>
+            {activePanel === 'upload' && <FileUpload files={files} onFilesChange={setFiles} />}
+            {activePanel === 'idoc' && <IdocStatus data={files.edidc} />}
+            {activePanel === 'cid' && <CidStatus data={files.edidc} />}
+            {activePanel === 'rsn' && <RsnStatus data={files.rsn} />}
+            {activePanel === 'bor-gr' && <BorGrMismatch ekesData={files.ekes} msegData={files.mseg} />}
+          </div>
+        )}
       </main>
 
       <footer className="app-footer">
-        <p>BO Self Serve Dashboard  Proof of Concept</p>
+        <p>BO Self Serve Dashboard — Proof of Concept</p>
       </footer>
     </div>
   );

@@ -110,9 +110,9 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
     if (needsMseg) missing.push('MSEG');
     return (
       <div className="feature-panel">
-        <h2>F5 — BOR and GR Mismatch</h2>
+        <h2>BOR and GR Mismatch</h2>
         <p className="empty-state">
-          Please upload {missing.join(' and ')} file{missing.length > 1 ? 's' : ''} first (F1 — Upload tab).
+          Please upload {missing.join(' and ')} file{missing.length > 1 ? 's' : ''} first.
         </p>
       </div>
     );
@@ -120,7 +120,7 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
 
   return (
     <div className="feature-panel">
-      <h2>F5 — BOR and GR Mismatch</h2>
+      <h2>BOR and GR Mismatch</h2>
       <p className="feature-description">
         Enter a BO (Purchasing Document) and PID to check for BOR/GR mismatches. The system searches EKES for BOR confirmation and MSEG for GR entry, flagging mismatches for F_ (Finished Goods) PIDs missing GR.
       </p>

@@ -40,15 +40,15 @@ export default function RsnStatus({ data }: RsnStatusProps) {
   if (!data) {
     return (
       <div className="feature-panel">
-        <h2>F4 — RSN Status</h2>
-        <p className="empty-state">Please upload an RSN Header file first (F1 — Upload tab).</p>
+        <h2>RSN Status</h2>
+        <p className="empty-state">Please upload an RSN Header file first.</p>
       </div>
     );
   }
 
   return (
     <div className="feature-panel">
-      <h2>F4 — RSN Status</h2>
+      <h2>RSN Status</h2>
       <p className="feature-description">
         Enter one or more RSN values (comma-separated or one per line) to check their processing status in SAP ECC.
       </p>

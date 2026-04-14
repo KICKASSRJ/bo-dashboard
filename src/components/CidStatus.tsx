@@ -44,15 +44,15 @@ export default function CidStatus({ data }: CidStatusProps) {
   if (!data) {
     return (
       <div className="feature-panel">
-        <h2>F3 — CID Processing Status</h2>
-        <p className="empty-state">Please upload an EDIDC file first (F1 — Upload tab).</p>
+        <h2>CID Processing Status</h2>
+        <p className="empty-state">Please upload an EDIDC file first.</p>
       </div>
     );
   }
 
   return (
     <div className="feature-panel">
-      <h2>F3 — CID Processing Status</h2>
+      <h2>CID Processing Status</h2>
       <p className="feature-description">
         Enter a CID (EDI Archive Key) to look up its processing status. If multiple records exist for the same CID, all are displayed.
       </p>

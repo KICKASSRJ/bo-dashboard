@@ -14,13 +14,16 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
   const allResults = useMemo<BorGrResult[]>(() => {
     if (!ekesData || !msegData) return [];
 
-    // Build a lookup: key = purchaseOrder (lowercase) → Map of shortText (lowercase) → material document
-    const msegIndex = new Map<string, Map<string, string>>();
+    // Build a lookup: key = purchaseOrder (lowercase) → array of { shortText, materialDocument }
+    const msegIndex = new Map<string, { shortText: string; materialDocument: string }[]>();
     for (const row of msegData) {
       const po = row.purchaseOrder.trim().toLowerCase();
-      if (!msegIndex.has(po)) msegIndex.set(po, new Map());
-      const matDoc = row['Material Document'] || row['material document'] || row['Mat. Doc.'] || '';
-      msegIndex.get(po)!.set(row.shortText.trim().toLowerCase(), matDoc.trim());
+      if (!msegIndex.has(po)) msegIndex.set(po, []);
+      const matDoc = row['Material Document'] || row['material document'] || row['Mat. Doc.'] || row['Material Doc.'] || '';
+      msegIndex.get(po)!.push({
+        shortText: row.shortText.trim().toLowerCase(),
+        materialDocument: matDoc.trim(),
+      });
     }
 
     const results: BorGrResult[] = [];
@@ -37,11 +40,19 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
         basePid = borPid.substring(2);
       }
 
-      // Check MSEG for matching GR using the base PID
-      const msegMap = msegIndex.get(bo.toLowerCase());
-      const grFound = msegMap ? msegMap.has(basePid.toLowerCase()) : false;
-      const grPid = grFound ? basePid : '';
-      const materialDocument = (msegMap && grFound) ? msegMap.get(basePid.toLowerCase()) || '' : '';
+      // Check MSEG for matching GR — try basePid first, then full borPid
+      const msegRows = msegIndex.get(bo.toLowerCase()) || [];
+      let grMatch = msegRows.find(r => r.shortText === basePid.toLowerCase());
+      if (!grMatch) {
+        grMatch = msegRows.find(r => r.shortText === borPid.toLowerCase());
+      }
+      if (!grMatch) {
+        grMatch = msegRows.find(r => r.shortText.includes(basePid.toLowerCase()));
+      }
+
+      const grFound = !!grMatch;
+      const grPid = grFound ? (grMatch!.shortText) : '';
+      const materialDocument = grFound ? grMatch!.materialDocument : '';
 
       let mismatch = 'BOR and GR are in sync';
       if (upper.startsWith('F_') && !grFound) {

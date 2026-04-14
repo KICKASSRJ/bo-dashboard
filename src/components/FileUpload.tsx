@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { UploadedFiles } from '../types';
-import { parseEdidcFile, parseEkesFile, parseMsegFile, parseRsnFile } from '../excel-parser';
+import ParseWorker from '../parse-worker?worker';
 
 interface FileUploadProps {
   files: UploadedFiles;
@@ -37,12 +37,24 @@ function detectFileType(name: string): FileType | null {
   return null;
 }
 
-const PARSERS: Record<FileType, (buf: ArrayBuffer) => { data: unknown[]; errors: string[]; rowCount: number }> = {
-  edidc: parseEdidcFile,
-  mseg: parseMsegFile,
-  ekes: parseEkesFile,
-  rsn: parseRsnFile,
-};
+function parseInWorker(fileType: FileType, buffer: ArrayBuffer): Promise<{ data: Record<string, string>[]; errors: string[]; rowCount: number }> {
+  return new Promise((resolve, reject) => {
+    const worker = new ParseWorker();
+    worker.onmessage = (e: MessageEvent) => {
+      worker.terminate();
+      if (e.data.error) {
+        reject(new Error(e.data.error));
+      } else {
+        resolve(e.data.result);
+      }
+    };
+    worker.onerror = (err) => {
+      worker.terminate();
+      reject(new Error(err.message || 'Worker failed'));
+    };
+    worker.postMessage({ fileType, buffer }, [buffer]);
+  });
+}
 
 function deriveFileStates(files: UploadedFiles): Record<FileType, FileState> {
   const keys: FileType[] = ['edidc', 'mseg', 'ekes', 'rsn'];
@@ -67,13 +79,13 @@ export default function FileUpload({ files, onFilesChange }: FileUploadProps) {
     setFileStates(prev => ({ ...prev, [fileType]: { ...prev[fileType], ...update } }));
   };
 
-  const processFile = useCallback(async (fileType: FileType, file: File, currentFiles: UploadedFiles): Promise<{ key: FileType; data: unknown[] } | null> => {
+  const processFile = useCallback(async (fileType: FileType, file: File, _currentFiles: UploadedFiles): Promise<{ key: FileType; data: unknown[] } | null> => {
     updateFileState(fileType, { status: 'reading', fileName: file.name, error: '', rowCount: 0 });
     try {
       const buffer = await file.arrayBuffer();
       updateFileState(fileType, { status: 'parsing' });
 
-      const result = PARSERS[fileType](buffer);
+      const result = await parseInWorker(fileType, buffer);
 
       if (result.errors.length > 0) {
         updateFileState(fileType, { status: 'error', error: result.errors.join('\n') });

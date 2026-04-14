@@ -92,7 +92,7 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
   // For OLE2/CFB files (old .xls format), use binary string — single attempt
   if (isCfb) {
     try {
-      const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary' });
+      const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary', cellDates: false, cellText: true });
       if (wb.SheetNames.length > 0) return wb;
     } catch {
       // CFB but not readable — likely encrypted or corrupt
@@ -102,7 +102,7 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
 
   // For ZIP-based .xlsx files, ArrayBuffer read is fastest — single attempt
   try {
-    const wb = XLSX.read(file, { type: 'array' });
+    const wb = XLSX.read(file, { type: 'array', cellDates: false, cellText: true });
     if (wb.SheetNames.length > 0) return wb;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -125,7 +125,7 @@ function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[
   }
 
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, rawNumbers: false });
+  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, rawNumbers: false });
 
   if (raw.length < 2) {
     return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };

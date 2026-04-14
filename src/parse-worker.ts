@@ -81,14 +81,14 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
 
   if (isCfb) {
     try {
-      const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary', dense: true });
+      const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary', dense: true, cellDates: false, cellText: true });
       if (wb.SheetNames.length > 0) return wb;
     } catch { /* */ }
     throw new Error(UNREADABLE_FILE_ERROR);
   }
 
   try {
-    const wb = XLSX.read(file, { type: 'array', dense: true });
+    const wb = XLSX.read(file, { type: 'array', dense: true, cellDates: false, cellText: true });
     if (wb.SheetNames.length > 0) return wb;
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
@@ -110,7 +110,7 @@ function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[
   }
 
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, rawNumbers: false });
+  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: false, rawNumbers: false });
 
   if (raw.length < 2) return { errors: ['File is empty or has no data rows.'] };
 

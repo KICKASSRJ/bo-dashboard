@@ -454,12 +454,12 @@ body {
 }
 
 .data-table th {
-  background: #1565c0;
+  background: var(--accent);
   padding: 0.75rem 1rem;
   text-align: left;
   font-weight: 600;
   color: #ffffff;
-  border: 1px solid #1258a8;
+  border: 1px solid var(--primary-dark);
   border-top: none;
   white-space: nowrap;
   font-size: 0.8rem;
@@ -481,7 +481,7 @@ body {
 }
 
 .data-table th.sortable:hover {
-  background: #1258a8;
+  background: var(--primary-dark);
 }
 
 .data-table td {

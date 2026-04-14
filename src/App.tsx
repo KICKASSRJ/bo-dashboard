@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react';
+﻿import { useState, useCallback, useEffect } from 'react';
 import type { UploadedFiles } from './types';
 import FileUpload from './components/FileUpload';
 import IdocStatus from './components/IdocStatus';
@@ -7,28 +7,43 @@ import RsnStatus from './components/RsnStatus';
 import BorGrMismatch from './components/BorGrMismatch';
 import './App.css';
 
-const STORAGE_KEY = 'bo-dashboard-files';
+const DB_NAME = 'bo-dashboard';
+const DB_STORE = 'files';
+const DB_KEY = 'uploaded';
 
-function loadFiles(): UploadedFiles {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored) as UploadedFiles;
-      return {
-        edidc: parsed.edidc ?? null,
-        mseg: parsed.mseg ?? null,
-        ekes: parsed.ekes ?? null,
-        rsn: parsed.rsn ?? null,
-      };
-    }
-  } catch { /* ignore corrupt data */ }
-  return { edidc: null, mseg: null, ekes: null, rsn: null };
+function openDB(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => { req.result.createObjectStore(DB_STORE); };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
 }
 
-function saveFiles(files: UploadedFiles) {
+async function loadFilesFromDB(): Promise<UploadedFiles> {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
-  } catch { /* storage full — silently ignore */ }
+    const db = await openDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const store = tx.objectStore(DB_STORE);
+      const req = store.get(DB_KEY);
+      req.onsuccess = () => {
+        const data = req.result as UploadedFiles | undefined;
+        resolve(data ? { edidc: data.edidc ?? null, mseg: data.mseg ?? null, ekes: data.ekes ?? null, rsn: data.rsn ?? null } : { edidc: null, mseg: null, ekes: null, rsn: null });
+      };
+      req.onerror = () => resolve({ edidc: null, mseg: null, ekes: null, rsn: null });
+    });
+  } catch {
+    return { edidc: null, mseg: null, ekes: null, rsn: null };
+  }
+}
+
+async function saveFilesToDB(files: UploadedFiles) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    tx.objectStore(DB_STORE).put(files, DB_KEY);
+  } catch { /* silently ignore */ }
 }
 
 type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
@@ -43,11 +58,20 @@ const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = 
 
 function App() {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-  const [files, setFiles] = useState<UploadedFiles>(loadFiles);
+  const [files, setFiles] = useState<UploadedFiles>({ edidc: null, mseg: null, ekes: null, rsn: null });
+  const [loaded, setLoaded] = useState(false);
+
+  // Load persisted data from IndexedDB on mount
+  useEffect(() => {
+    loadFilesFromDB().then(data => {
+      setFiles(data);
+      setLoaded(true);
+    });
+  }, []);
 
   const handleFilesChange = useCallback((updated: UploadedFiles) => {
     setFiles(updated);
-    saveFiles(updated);
+    saveFilesToDB(updated);
   }, []);
 
   const uploadedCount = Object.values(files).filter(Boolean).length;

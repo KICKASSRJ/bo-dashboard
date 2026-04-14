@@ -14,12 +14,22 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
   const allResults = useMemo<BorGrResult[]>(() => {
     if (!ekesData || !msegData) return [];
 
+    // Find the Material Document column name dynamically from the first MSEG row
+    let matDocKey = '';
+    if (msegData.length > 0) {
+      const firstRow = msegData[0];
+      matDocKey = Object.keys(firstRow).find(k => {
+        const lk = k.toLowerCase().replace(/[^a-z]/g, '');
+        return lk === 'mblnr' || lk === 'materialdocument' || lk === 'materialdoc' || lk === 'matdoc';
+      }) || '';
+    }
+
     // Build a lookup: key = purchaseOrder (lowercase) → array of { shortText, materialDocument }
     const msegIndex = new Map<string, { shortText: string; materialDocument: string }[]>();
     for (const row of msegData) {
       const po = row.purchaseOrder.trim().toLowerCase();
       if (!msegIndex.has(po)) msegIndex.set(po, []);
-      const matDoc = row['Material Document'] || row['material document'] || row['Mat. Doc.'] || row['Material Doc.'] || '';
+      const matDoc = matDocKey ? (row[matDocKey] || '') : '';
       msegIndex.get(po)!.push({
         shortText: row.shortText.trim().toLowerCase(),
         materialDocument: matDoc.trim(),

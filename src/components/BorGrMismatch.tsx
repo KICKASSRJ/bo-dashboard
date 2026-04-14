@@ -38,11 +38,11 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
       for (const ekesRow of matchingEkes) {
         const borPid = ekesRow.reference.trim();
 
-        // Step 3: Search MSEG for corresponding GR entry
+        // Step 3: Search MSEG for corresponding GR entry using the original PID (not prefixed)
         const grMatches = msegData.filter(
           row =>
             row.purchaseOrder.trim().toLowerCase() === boVal.toLowerCase() &&
-            row.shortText.trim().toLowerCase() === prefixedPid.toLowerCase()
+            row.shortText.trim().toLowerCase() === pidVal.toLowerCase()
         );
 
         const grPid = grMatches.length > 0 ? grMatches[0].shortText.trim() : '';
@@ -57,7 +57,7 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
           bo: ekesRow.purchasingDocument.trim(),
           borPid,
           grPid: grPid || '—',
-          mismatch: mismatch || '—',
+          mismatch: mismatch || 'BOR and GR are in sync',
         });
       }
     }
@@ -88,7 +88,7 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
           bo: ekesRow.purchasingDocument.trim(),
           borPid,
           grPid: grPid || '—',
-          mismatch: mismatch || '—',
+          mismatch: mismatch || 'BOR and GR are in sync',
         });
       }
     }

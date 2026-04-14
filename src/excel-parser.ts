@@ -125,7 +125,7 @@ function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[
   }
 
   const ws = wb.Sheets[wb.SheetNames[0]];
-  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1 });
+  const raw: unknown[][] = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, rawNumbers: false });
 
   if (raw.length < 2) {
     return { data: [], errors: ['File is empty or has no data rows.'], rowCount: 0 };

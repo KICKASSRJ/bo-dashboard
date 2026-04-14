@@ -310,11 +310,20 @@ body {
   text-align: left;
   font-weight: 600;
   color: var(--text-secondary);
-  border-bottom: 2px solid var(--border);
+  border: 1px solid var(--border);
+  border-top: none;
   white-space: nowrap;
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+.data-table th:first-child {
+  border-left: none;
+}
+
+.data-table th:last-child {
+  border-right: none;
 }
 
 .data-table th.sortable {
@@ -328,8 +337,16 @@ body {
 
 .data-table td {
   padding: 0.625rem 1rem;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid var(--border);
   color: var(--text);
+}
+
+.data-table td:first-child {
+  border-left: none;
+}
+
+.data-table td:last-child {
+  border-right: none;
 }
 
 .data-table tbody tr:hover {

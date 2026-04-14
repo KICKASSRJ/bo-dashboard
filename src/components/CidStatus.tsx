@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { EdidcRecord, CidResult } from '../types';
 import { IDOC_STATUS_MAP } from '../types';
 
@@ -10,6 +10,13 @@ export default function CidStatus({ data }: CidStatusProps) {
   const [cid, setCid] = useState('');
   const [results, setResults] = useState<CidResult[]>([]);
   const [searched, setSearched] = useState(false);
+
+  // Get unique sample CIDs from uploaded data
+  const sampleCids = useMemo(() => {
+    if (!data) return [];
+    const unique = [...new Set(data.map(r => r.ediArchiveKey.trim()).filter(Boolean))];
+    return unique.slice(0, 5);
+  }, [data]);
 
   const handleSearch = useCallback(() => {
     if (!data || !cid.trim()) return;
@@ -70,6 +77,19 @@ export default function CidStatus({ data }: CidStatusProps) {
           Search
         </button>
       </div>
+
+      {sampleCids.length > 0 && !searched && (
+        <div className="sample-data">
+          <p className="sample-data__label">Sample CIDs from uploaded data (click to use):</p>
+          <div className="sample-data__list">
+            {sampleCids.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setCid(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {searched && (
         <div className="results-section">

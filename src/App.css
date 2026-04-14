@@ -393,6 +393,41 @@ body {
   align-items: stretch;
 }
 
+/* Sample Data Reference */
+.sample-data {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: #f7fafa;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.sample-data__label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+.sample-data__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.sample-data__item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-family: monospace;
+  color: var(--primary);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sample-data__item:hover {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
 /* Inputs */
 .input {
   padding: 0.625rem 0.875rem;

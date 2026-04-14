@@ -87,29 +87,32 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
     throw new Error(DRM_FILE_ERROR);
   }
 
-  const strategies: { type: string; read: () => XLSX.WorkBook }[] = [
-    { type: 'array', read: () => XLSX.read(file, { type: 'array' }) },
-    { type: 'buffer', read: () => XLSX.read(new Uint8Array(file), { type: 'array' }) },
-    { type: 'binary', read: () => XLSX.read(arrayBufferToBinaryString(file), { type: 'binary' }) },
-    { type: 'base64', read: () => XLSX.read(btoa(arrayBufferToBinaryString(file)), { type: 'base64' }) },
-    { type: 'password', read: () => XLSX.read(file, { type: 'array', password: '' }) },
-  ];
+  const isCfb = isCfbFile(file);
 
-  let lastError: unknown;
-  for (const strategy of strategies) {
+  // For OLE2/CFB files (old .xls format), use binary string — single attempt
+  if (isCfb) {
     try {
-      const wb = strategy.read();
+      const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary' });
       if (wb.SheetNames.length > 0) return wb;
-    } catch (e) {
-      lastError = e;
+    } catch {
+      // CFB but not readable — likely encrypted or corrupt
     }
-  }
-
-  const msg = lastError instanceof Error ? lastError.message : String(lastError);
-  if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376') || msg.includes('password')) {
     throw new Error(UNREADABLE_FILE_ERROR);
   }
-  throw new Error(UNREADABLE_FILE_ERROR + '\n\nTechnical detail: ' + msg);
+
+  // For ZIP-based .xlsx files, ArrayBuffer read is fastest — single attempt
+  try {
+    const wb = XLSX.read(file, { type: 'array' });
+    if (wb.SheetNames.length > 0) return wb;
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes('Encrypted') || msg.includes('EncryptionInfo') || msg.includes('ECMA-376') || msg.includes('password')) {
+      throw new Error(UNREADABLE_FILE_ERROR);
+    }
+    throw new Error(UNREADABLE_FILE_ERROR + '\n\nTechnical detail: ' + msg);
+  }
+
+  throw new Error(UNREADABLE_FILE_ERROR);
 }
 
 function safeParseSheet(file: ArrayBuffer): { raw: unknown[][]; headers: string[] } | ParseResult<never> {

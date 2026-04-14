@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BO Self Serve Dashboard — Leadership Pitch Deck</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  .slide {
+    display: none;
+    width: 100vw;
+    height: 100vh;
+    padding: 60px 80px;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .slide.active { display: flex; }
+
+  /* Slide Themes */
+  .slide--title {
+    background: linear-gradient(135deg, #0f6b5e 0%, #1b3a4b 100%);
+    text-align: center;
+    align-items: center;
+  }
+  .slide--content {
+    background: #fff;
+    color: #1b3a4b;
+  }
+  .slide--accent {
+    background: linear-gradient(135deg, #1b3a4b 0%, #0a4f46 100%);
+  }
+  .slide--dark {
+    background: #111;
+  }
+  .slide--cta {
+    background: linear-gradient(135deg, #0f6b5e 0%, #1b3a4b 50%, #0a4f46 100%);
+    text-align: center;
+    align-items: center;
+  }
+
+  /* Typography */
+  .slide-tag {
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    opacity: 0.7;
+    margin-bottom: 20px;
+  }
+  .slide--content .slide-tag { color: #0f6b5e; }
+
+  h1 { font-size: 56px; font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
+  h2 { font-size: 42px; font-weight: 700; line-height: 1.2; margin-bottom: 32px; }
+  .slide--content h2 { color: #1b3a4b; }
+
+  .subtitle {
+    font-size: 22px;
+    font-weight: 400;
+    opacity: 0.85;
+    max-width: 700px;
+    line-height: 1.6;
+  }
+  .slide--title .subtitle { margin: 0 auto; }
+
+  .logo-text {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-bottom: 30px;
+  }
+
+  /* Cards Grid */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+    margin-top: 10px;
+  }
+  .card {
+    background: rgba(15, 107, 94, 0.08);
+    border: 1px solid rgba(15, 107, 94, 0.2);
+    border-radius: 16px;
+    padding: 28px 32px;
+  }
+  .card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f6b5e;
+    margin-bottom: 10px;
+  }
+  .card p {
+    font-size: 15px;
+    color: #444;
+    line-height: 1.6;
+  }
+
+  /* Metric Cards */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    margin-top: 10px;
+  }
+  .metric {
+    text-align: center;
+    padding: 30px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .metric-value {
+    font-size: 52px;
+    font-weight: 800;
+    color: #4dd9c0;
+    margin-bottom: 8px;
+  }
+  .metric-label {
+    font-size: 16px;
+    opacity: 0.7;
+    line-height: 1.4;
+  }
+
+  /* Pain Points */
+  .pain-list {
+    list-style: none;
+    margin-top: 10px;
+  }
+  .pain-list li {
+    font-size: 20px;
+    padding: 16px 0;
+    border-bottom: 1px solid rgba(15,107,94,0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    color: #333;
+    line-height: 1.5;
+  }
+  .pain-list li:last-child { border-bottom: none; }
+  .pain-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* Feature List */
+  .feature-list {
+    list-style: none;
+    margin-top: 10px;
+  }
+  .feature-list li {
+    font-size: 19px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    line-height: 1.5;
+  }
+  .feature-list li:last-child { border-bottom: none; }
+  .feat-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+  .feat-name {
+    font-weight: 700;
+    color: #4dd9c0;
+  }
+
+  /* Before/After */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    margin-top: 10px;
+  }
+  .compare-col h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 3px solid;
+  }
+  .compare-col--before h3 { color: #c62828; border-color: #c62828; }
+  .compare-col--after h3 { color: #0f6b5e; border-color: #0f6b5e; }
+  .compare-col ul {
+    list-style: none;
+    font-size: 17px;
+    line-height: 1.8;
+    color: #444;
+  }
+  .compare-col ul li::before { margin-right: 10px; }
+  .compare-col--before ul li::before { content: '✗'; color: #c62828; font-weight: 700; }
+  .compare-col--after ul li::before { content: '✓'; color: #0f6b5e; font-weight: 700; }
+
+  /* Timeline */
+  .timeline {
+    display: flex;
+    gap: 0;
+    margin-top: 20px;
+    align-items: flex-start;
+  }
+  .timeline-item {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 0 20px;
+  }
+  .timeline-item::after {
+    content: '';
+    position: absolute;
+    top: 24px;
+    right: -2px;
+    width: 50%;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+  }
+  .timeline-item:last-child::after { display: none; }
+  .timeline-dot {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #4dd9c0;
+    color: #1b3a4b;
+    font-weight: 800;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .timeline-title {
+    font-weight: 700;
+    font-size: 17px;
+    margin-bottom: 8px;
+  }
+  .timeline-desc {
+    font-size: 14px;
+    opacity: 0.65;
+    line-height: 1.5;
+  }
+
+  /* Navigation */
+  .nav {
+    position: fixed;
+    bottom: 30px;
+    right: 40px;
+    display: flex;
+    gap: 12px;
+    z-index: 100;
+  }
+  .nav button {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    transition: background 0.2s;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.25); }
+  .slide-counter {
+    position: fixed;
+    bottom: 38px;
+    left: 40px;
+    font-size: 14px;
+    opacity: 0.5;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<!-- SLIDE 1: Title -->
+<div class="slide slide--title active" id="s1">
+  <div class="logo-text">Microsoft Supply Chain — SCE Planning</div>
+  <h1>BO Self Serve Dashboard</h1>
+  <p class="subtitle">
+    Empowering Supply Chain teams with instant, self-service visibility into SAP transactional data — eliminating manual effort, reducing resolution time, and catching anomalies before they impact operations.
+  </p>
+</div>
+
+<!-- SLIDE 2: The Problem -->
+<div class="slide slide--content" id="s2">
+  <div class="slide-tag">The Challenge</div>
+  <h2>Manual SAP Data Analysis is Slowing Us Down</h2>
+  <ul class="pain-list">
+    <li><span class="pain-icon">⏱️</span> <span><strong>Hours spent per investigation</strong> — Teams manually open SAP exports in Excel, cross-reference multiple files, and visually scan thousands of rows to find IDoc statuses, CID matches, and GR mismatches.</span></li>
+    <li><span class="pain-icon">🔄</span> <span><strong>Repetitive workflows</strong> — The same data lookups (BOR status, RSN verification, CID tracing) are performed dozens of times daily by multiple team members.</span></li>
+    <li><span class="pain-icon">⚠️</span> <span><strong>Anomalies slip through</strong> — BOR/GR mismatches on Finished Goods go undetected until downstream processes fail, causing delays and escalations.</span></li>
+    <li><span class="pain-icon">🔒</span> <span><strong>Dependency on SAP experts</strong> — Only a few team members know which tables to query and how to interpret the results, creating bottlenecks.</span></li>
+  </ul>
+</div>
+
+<!-- SLIDE 3: The Solution -->
+<div class="slide slide--accent" id="s3">
+  <div class="slide-tag">The Solution</div>
+  <h2>One Dashboard. All Answers. Instantly.</h2>
+  <ul class="feature-list">
+    <li><span class="feat-icon">📁</span> <span><span class="feat-name">SAP Input Data</span> — Upload EDIDC, MSEG, EKES, and RSN exports once. Data persists across sessions. Bulk upload all 4 files at once with auto-detection.</span></li>
+    <li><span class="feat-icon">📋</span> <span><span class="feat-name">BOR & GR Message Status</span> — Full IDoc status visibility with sortable, filterable view of all records. Instant status descriptions for all 53/51/64/68/60/61 codes.</span></li>
+    <li><span class="feat-icon">🔎</span> <span><span class="feat-name">CID Processing Status</span> — Look up any CID (EDI Archive Key) and instantly see all associated IDocs, their statuses, and processing details.</span></li>
+    <li><span class="feat-icon">✅</span> <span><span class="feat-name">RSN Verification</span> — Batch-verify hundreds of RSN numbers against SAP ECC in seconds. Immediate pass/fail for each RSN.</span></li>
+    <li><span class="feat-icon">⚠️</span> <span><span class="feat-name">BOR / GR Mismatch Detection</span> — Automatically compares ALL EKES and MSEG records. Flags F_ (Finished Goods) PIDs missing Goods Receipts. No manual cross-referencing.</span></li>
+  </ul>
+</div>
+
+<!-- SLIDE 4: Impact Metrics -->
+<div class="slide slide--dark" id="s4">
+  <div class="slide-tag">Projected Impact</div>
+  <h2>From Hours to Seconds</h2>
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-value">95%</div>
+      <div class="metric-label">Reduction in manual<br>data lookup time</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">10x</div>
+      <div class="metric-label">Faster anomaly<br>detection</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">100%</div>
+      <div class="metric-label">Coverage of BOR/GR<br>mismatch checks</div>
+    </div>
+  </div>
+  <div class="metrics" style="margin-top: 30px;">
+    <div class="metric">
+      <div class="metric-value">0</div>
+      <div class="metric-label">SAP expertise<br>required</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">4</div>
+      <div class="metric-label">Files uploaded,<br>5 features powered</div>
+    </div>
+    <div class="metric">
+      <div class="metric-value">24/7</div>
+      <div class="metric-label">Self-serve access<br>for entire team</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: Before vs After -->
+<div class="slide slide--content" id="s5">
+  <div class="slide-tag">Transformation</div>
+  <h2>Before vs After</h2>
+  <div class="compare">
+    <div class="compare-col compare-col--before">
+      <h3>Before (Manual Process)</h3>
+      <ul>
+        <li>Open 4 Excel files manually in SAP GUI</li>
+        <li>Cross-reference rows across files by eye</li>
+        <li>Look up IDoc status codes in documentation</li>
+        <li>Manually check each CID one at a time</li>
+        <li>Copy-paste RSN numbers to verify in SAP</li>
+        <li>Miss BOR/GR mismatches in large datasets</li>
+        <li>Wait for SAP-skilled colleagues to help</li>
+        <li>Repeat entire process for every investigation</li>
+      </ul>
+    </div>
+    <div class="compare-col compare-col--after">
+      <h3>After (BO Self Serve Dashboard)</h3>
+      <ul>
+        <li>Drag & drop all 4 files — auto-detected</li>
+        <li>Automatic cross-referencing in milliseconds</li>
+        <li>Status descriptions shown inline automatically</li>
+        <li>Click a sample CID — instant results</li>
+        <li>Batch-verify hundreds of RSNs at once</li>
+        <li>100% mismatch coverage, auto-flagged in red</li>
+        <li>Anyone on the team can use it immediately</li>
+        <li>Data persists — upload once, analyze anytime</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 6: Key Capabilities -->
+<div class="slide slide--content" id="s6">
+  <div class="slide-tag">Technical Capabilities</div>
+  <h2>Built for Enterprise SAP Workflows</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>🛡️ DRM-Aware File Handling</h3>
+      <p>Automatically detects Microsoft Information Protection on SAP exports. Provides clear guidance and converter tools when files are DRM-protected.</p>
+    </div>
+    <div class="card">
+      <h3>⚡ Web Worker Architecture</h3>
+      <p>Large MSEG files (100K+ rows) are parsed in a background thread. The UI stays responsive — no page crashes, no freezing.</p>
+    </div>
+    <div class="card">
+      <h3>💾 Persistent Data Storage</h3>
+      <p>Uploaded data is stored in IndexedDB. Survives page reloads, browser restarts, and tab navigation. Only replaced when user explicitly re-uploads.</p>
+    </div>
+    <div class="card">
+      <h3>🔐 Privacy-First Design</h3>
+      <p>All processing happens in the browser. No SAP data is sent to any server. Zero backend dependencies for data analysis.</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: Roadmap -->
+<div class="slide slide--accent" id="s7">
+  <div class="slide-tag">What's Next</div>
+  <h2>Roadmap</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="timeline-dot">✓</div>
+      <div class="timeline-title">Phase 1 — POC</div>
+      <div class="timeline-desc">5 core features<br>File upload & parsing<br>DRM detection<br>Web Worker optimization</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">2</div>
+      <div class="timeline-title">Phase 2 — Deploy</div>
+      <div class="timeline-desc">Azure Static Web App<br>Team-wide access<br>SSO authentication</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">3</div>
+      <div class="timeline-title">Phase 3 — Enhance</div>
+      <div class="timeline-desc">Export results to Excel<br>Scheduled auto-reports<br>Historical trend analysis</div>
+    </div>
+    <div class="timeline-item">
+      <div class="timeline-dot">4</div>
+      <div class="timeline-title">Phase 4 — Scale</div>
+      <div class="timeline-desc">Direct SAP integration<br>Real-time data feeds<br>AI anomaly prediction</div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 8: CTA -->
+<div class="slide slide--cta" id="s8">
+  <div class="logo-text">Microsoft Supply Chain — SCE Planning</div>
+  <h1>Ready for Review</h1>
+  <p class="subtitle" style="margin-bottom: 40px;">
+    The BO Self Serve Dashboard is a working POC today — all 5 features functional, tested with real SAP data. We're requesting support to deploy to Azure and roll out to the wider Supply Chain team.
+  </p>
+  <div style="font-size: 18px; opacity: 0.7;">
+    Built with React + TypeScript | Browser-based | Zero server-side data exposure
+  </div>
+</div>
+
+<div class="slide-counter"><span id="current">1</span> / <span id="total">8</span></div>
+
+<div class="nav">
+  <button onclick="prev()">← Prev</button>
+  <button onclick="next()">Next →</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  document.getElementById('total').textContent = total;
+
+  function show(n) {
+    slides.forEach(s => s.classList.remove('active'));
+    current = (n + total) % total;
+    slides[current].classList.add('active');
+    document.getElementById('current').textContent = current + 1;
+  }
+
+  function next() { show(current + 1); }
+  function prev() { show(current - 1); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+    if (e.key === 'ArrowLeft') prev();
+  });
+</script>
+</body>
+</html>

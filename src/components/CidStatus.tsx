@@ -54,7 +54,7 @@ export default function CidStatus({ data }: CidStatusProps) {
     <div className="feature-panel">
       <h2>CID Processing Status</h2>
       <p className="feature-description">
-        Enter a CID (EDI Archive Key) to look up its processing status. If multiple records exist for the same CID, all are displayed.
+        Look up CID processing status. If multiple records exist for the same CID, all are displayed.
       </p>
 
       <div className="search-bar">

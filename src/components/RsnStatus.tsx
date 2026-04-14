@@ -50,7 +50,7 @@ export default function RsnStatus({ data }: RsnStatusProps) {
     <div className="feature-panel">
       <h2>RSN Status</h2>
       <p className="feature-description">
-        Enter one or more RSN values (comma-separated or one per line) to check their processing status in SAP ECC.
+        Verify the receipt of RSN into SAP ECC. Enter one or more RSN values (comma-separated or one per line).
       </p>
 
       <div className="search-bar search-bar--vertical">

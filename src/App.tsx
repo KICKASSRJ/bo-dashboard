@@ -10,11 +10,11 @@ import './App.css';
 type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
 
 const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = [
-  { id: 'upload', icon: '📂', title: 'Upload Input Data', desc: 'Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.' },
-  { id: 'idoc', icon: '📋', title: 'IDoc Status', desc: 'View all IDoc records with status codes, sortable and filterable.' },
-  { id: 'cid', icon: '🔍', title: 'CID Processing Status', desc: 'Look up CID processing status by EDI Archive Key.' },
-  { id: 'rsn', icon: '📦', title: 'RSN Status', desc: 'Batch verify RSN numbers against SAP ECC data.' },
-  { id: 'bor-gr', icon: '⚠️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
+  { id: 'upload', icon: '�', title: 'SAP Input Data', desc: 'Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.' },
+  { id: 'idoc', icon: '📊', title: 'BOR and GR Message Status', desc: "Find status of BOR and GR IDoc's — sortable and filterable." },
+  { id: 'cid', icon: '🔎', title: 'CID Processing Status', desc: 'Look up CID processing status.' },
+  { id: 'rsn', icon: '✅', title: 'RSN Status', desc: 'Verify the receipt of RSN into SAP ECC.' },
+  { id: 'bor-gr', icon: '⚙️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
 ];
 
 function App() {
@@ -33,10 +33,7 @@ function App() {
       <header className="app-header">
         <div className="header-content">
           <h1 className="app-title">BO Self Serve Dashboard</h1>
-          <p className="app-subtitle">Status & Anomaly Detection</p>
-        </div>
-        <div className="header-stats">
-          <span className="stat">{uploadedCount}/4 files loaded</span>
+          <p className="app-subtitle">Supply Chain — Status & Anomaly Detection</p>
         </div>
       </header>
 
@@ -54,6 +51,9 @@ function App() {
                   <span className="dashboard-home__icon">{card.icon}</span>
                   <h3 className="dashboard-home__card-title">{card.title}</h3>
                   <p className="dashboard-home__card-desc">{card.desc}</p>
+                  {card.id === 'upload' && (
+                    <span className="dashboard-home__badge">{uploadedCount}/4 files loaded</span>
+                  )}
                 </button>
               ))}
             </div>

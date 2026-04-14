@@ -1,5 +1,5 @@
 ﻿import { useState } from 'react';
-import type { UploadedFiles, TabId } from './types';
+import type { UploadedFiles } from './types';
 import FileUpload from './components/FileUpload';
 import IdocStatus from './components/IdocStatus';
 import CidStatus from './components/CidStatus';
@@ -7,16 +7,7 @@ import RsnStatus from './components/RsnStatus';
 import BorGrMismatch from './components/BorGrMismatch';
 import './App.css';
 
-const TABS: { id: TabId; label: string; short: string }[] = [
-  { id: 'upload', label: 'F1  Upload Files', short: 'Upload' },
-  { id: 'idoc-status', label: 'F2  IDoc Status', short: 'IDoc' },
-  { id: 'cid-status', label: 'F3  CID Status', short: 'CID' },
-  { id: 'rsn-status', label: 'F4  RSN Status', short: 'RSN' },
-  { id: 'bor-gr-mismatch', label: 'F5  BOR/GR Mismatch', short: 'BOR/GR' },
-];
-
 function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('upload');
   const [files, setFiles] = useState<UploadedFiles>({
     edidc: null,
     mseg: null,
@@ -38,34 +29,28 @@ function App() {
         </div>
       </header>
 
-      <nav className="tab-nav">
-        {TABS.map(tab => (
-          <button
-            key={tab.id}
-            className={`tab-btn ${activeTab === tab.id ? 'tab-btn--active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-
-      <main className="main-content">
-        {activeTab === 'upload' && (
+      <main className="main-content dashboard">
+        <section className="dashboard-section">
           <FileUpload files={files} onFilesChange={setFiles} />
-        )}
-        {activeTab === 'idoc-status' && (
-          <IdocStatus data={files.edidc} />
-        )}
-        {activeTab === 'cid-status' && (
-          <CidStatus data={files.edidc} />
-        )}
-        {activeTab === 'rsn-status' && (
-          <RsnStatus data={files.rsn} />
-        )}
-        {activeTab === 'bor-gr-mismatch' && (
-          <BorGrMismatch ekesData={files.ekes} msegData={files.mseg} />
-        )}
+        </section>
+
+        <div className="dashboard-grid">
+          <section className="dashboard-section dashboard-card">
+            <IdocStatus data={files.edidc} />
+          </section>
+
+          <section className="dashboard-section dashboard-card">
+            <CidStatus data={files.edidc} />
+          </section>
+
+          <section className="dashboard-section dashboard-card">
+            <RsnStatus data={files.rsn} />
+          </section>
+
+          <section className="dashboard-section dashboard-card">
+            <BorGrMismatch ekesData={files.ekes} msegData={files.mseg} />
+          </section>
+        </div>
       </main>
 
       <footer className="app-footer">

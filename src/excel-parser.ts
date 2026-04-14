@@ -63,9 +63,7 @@ function isDrmProtected(buf: ArrayBuffer): boolean {
   try {
     // Parse the CFB container and check for DRM streams
     const cfb = XLSX.CFB.read(new Uint8Array(buf), { type: 'array' });
-    return cfb.FullPaths.some((p: string) =>
-      p.includes('DRMEncrypted') || p.includes('EncryptionInfo')
-    );
+    return cfb.FullPaths.some((p: string) => p.includes('DRMEncrypted'));
   } catch {
     return false;
   }
@@ -89,14 +87,20 @@ function safeReadWorkbook(file: ArrayBuffer): XLSX.WorkBook {
 
   const isCfb = isCfbFile(file);
 
-  // For OLE2/CFB files (old .xls format), use binary string — single attempt
+  // For OLE2/CFB files (old .xls format)
   if (isCfb) {
+    // Try binary string first (standard OLE2/XLS)
     try {
       const wb = XLSX.read(arrayBufferToBinaryString(file), { type: 'binary', cellDates: false, cellText: true });
       if (wb.SheetNames.length > 0) return wb;
     } catch {
-      // CFB but not readable — likely encrypted or corrupt
+      // CFB but not readable via binary — try array mode
     }
+    // Fallback: try array mode (handles some ECMA-376 encrypted CFB without password)
+    try {
+      const wb = XLSX.read(new Uint8Array(file), { type: 'array', cellDates: false, cellText: true });
+      if (wb.SheetNames.length > 0) return wb;
+    } catch { /* */ }
     throw new Error(UNREADABLE_FILE_ERROR);
   }
 

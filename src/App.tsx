@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useCallback } from 'react';
 import type { UploadedFiles } from './types';
 import FileUpload from './components/FileUpload';
 import IdocStatus from './components/IdocStatus';
@@ -6,6 +6,30 @@ import CidStatus from './components/CidStatus';
 import RsnStatus from './components/RsnStatus';
 import BorGrMismatch from './components/BorGrMismatch';
 import './App.css';
+
+const STORAGE_KEY = 'bo-dashboard-files';
+
+function loadFiles(): UploadedFiles {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as UploadedFiles;
+      return {
+        edidc: parsed.edidc ?? null,
+        mseg: parsed.mseg ?? null,
+        ekes: parsed.ekes ?? null,
+        rsn: parsed.rsn ?? null,
+      };
+    }
+  } catch { /* ignore corrupt data */ }
+  return { edidc: null, mseg: null, ekes: null, rsn: null };
+}
+
+function saveFiles(files: UploadedFiles) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+  } catch { /* storage full — silently ignore */ }
+}
 
 type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
 
@@ -19,12 +43,12 @@ const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = 
 
 function App() {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
-  const [files, setFiles] = useState<UploadedFiles>({
-    edidc: null,
-    mseg: null,
-    ekes: null,
-    rsn: null,
-  });
+  const [files, setFiles] = useState<UploadedFiles>(loadFiles);
+
+  const handleFilesChange = useCallback((updated: UploadedFiles) => {
+    setFiles(updated);
+    saveFiles(updated);
+  }, []);
 
   const uploadedCount = Object.values(files).filter(Boolean).length;
 
@@ -63,7 +87,7 @@ function App() {
             <button className="btn btn--back" onClick={() => setActivePanel(null)}>
               ← Back to Dashboard
             </button>
-            {activePanel === 'upload' && <FileUpload files={files} onFilesChange={setFiles} />}
+            {activePanel === 'upload' && <FileUpload files={files} onFilesChange={handleFilesChange} />}
             {activePanel === 'idoc' && <IdocStatus data={files.edidc} />}
             {activePanel === 'cid' && <CidStatus data={files.edidc} />}
             {activePanel === 'rsn' && <RsnStatus data={files.rsn} />}

@@ -258,6 +258,27 @@ body {
   overflow-y: auto;
 }
 
+/* Bulk Upload */
+.bulk-upload {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 2px dashed var(--primary);
+  border-radius: var(--radius);
+  margin-bottom: 1.5rem;
+}
+.btn--bulk {
+  font-size: 1rem;
+  padding: 0.6rem 1.5rem;
+  white-space: nowrap;
+}
+.bulk-upload__hint {
+  color: #666;
+  font-size: 0.85rem;
+}
+
 /* Upload Grid */
 .upload-grid {
   display: grid;

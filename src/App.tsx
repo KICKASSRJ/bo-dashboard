@@ -10,11 +10,11 @@ import './App.css';
 type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
 
 const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = [
-  { id: 'upload', icon: '�', title: 'SAP Input Data', desc: 'Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.' },
-  { id: 'idoc', icon: '📊', title: 'BOR and GR Message Status', desc: "Find status of BOR and GR IDoc's — sortable and filterable." },
+  { id: 'upload', icon: '📁', title: 'SAP Input Data', desc: 'Upload EDIDC, MSEG, EKES, and RSN Excel files exported from SAP ECC.' },
+  { id: 'idoc', icon: '📋', title: 'BOR and GR Message Status', desc: "Find status of BOR and GR IDoc's." },
   { id: 'cid', icon: '🔎', title: 'CID Processing Status', desc: 'Look up CID processing status.' },
   { id: 'rsn', icon: '✅', title: 'RSN Status', desc: 'Verify the receipt of RSN into SAP ECC.' },
-  { id: 'bor-gr', icon: '⚙️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
+  { id: 'bor-gr', icon: '⚠️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
 ];
 
 function App() {

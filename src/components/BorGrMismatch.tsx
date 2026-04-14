@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { EkesRecord, MsegRecord, BorGrResult } from '../types';
 
 interface BorGrMismatchProps {
@@ -6,100 +6,84 @@ interface BorGrMismatchProps {
   msegData: MsegRecord[] | null;
 }
 
-const PID_PREFIXES = ['P_', 'W_', 'F_'];
-
 export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps) {
-  const [bo, setBo] = useState('');
-  const [pid, setPid] = useState('');
-  const [results, setResults] = useState<BorGrResult[]>([]);
-  const [searched, setSearched] = useState(false);
+  const [filter, setFilter] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'mismatch' | 'sync'>('all');
 
-  const handleSearch = useCallback(() => {
-    if (!ekesData || !msegData || !bo.trim() || !pid.trim()) return;
+  // Build full comparison of all EKES records against MSEG on mount
+  const allResults = useMemo<BorGrResult[]>(() => {
+    if (!ekesData || !msegData) return [];
 
-    const boVal = bo.trim();
-    const pidVal = pid.trim();
-
-    // Step 1: Search EKES for matching Purchasing Document
-    const ekesMatches = ekesData.filter(
-      row => row.purchasingDocument.trim().toLowerCase() === boVal.toLowerCase()
-    );
-
-    // Step 2: From the EKES subset, find records matching the PID with prefix
-    const borResults: BorGrResult[] = [];
-
-    // Try each prefix to find matching BOR PID in EKES reference column
-    for (const prefix of PID_PREFIXES) {
-      const prefixedPid = `${prefix}${pidVal}`;
-      const matchingEkes = ekesMatches.filter(
-        row => row.reference.trim().toLowerCase() === prefixedPid.toLowerCase()
-      );
-
-      for (const ekesRow of matchingEkes) {
-        const borPid = ekesRow.reference.trim();
-
-        // Step 3: Search MSEG for corresponding GR entry using the original PID (not prefixed)
-        const grMatches = msegData.filter(
-          row =>
-            row.purchaseOrder.trim().toLowerCase() === boVal.toLowerCase() &&
-            row.shortText.trim().toLowerCase() === pidVal.toLowerCase()
-        );
-
-        const grPid = grMatches.length > 0 ? grMatches[0].shortText.trim() : '';
-
-        // Step 4: Determine mismatch
-        let mismatch = '';
-        if (borPid.toUpperCase().startsWith('F_') && !grPid) {
-          mismatch = 'BOR FG and GR Mismatch';
-        }
-
-        borResults.push({
-          bo: ekesRow.purchasingDocument.trim(),
-          borPid,
-          grPid: grPid || '—',
-          mismatch: mismatch || 'BOR and GR are in sync',
-        });
-      }
+    // Build a lookup: key = purchaseOrder (lowercase) → Map of shortText (lowercase) → material document
+    const msegIndex = new Map<string, Map<string, string>>();
+    for (const row of msegData) {
+      const po = row.purchaseOrder.trim().toLowerCase();
+      if (!msegIndex.has(po)) msegIndex.set(po, new Map());
+      const matDoc = row['Material Document'] || row['material document'] || row['Mat. Doc.'] || '';
+      msegIndex.get(po)!.set(row.shortText.trim().toLowerCase(), matDoc.trim());
     }
 
-    // If no prefix match found at all, try without prefix
-    if (borResults.length === 0) {
-      const directMatches = ekesMatches.filter(
-        row => row.reference.trim().toLowerCase().includes(pidVal.toLowerCase())
-      );
+    const results: BorGrResult[] = [];
 
-      for (const ekesRow of directMatches) {
-        const borPid = ekesRow.reference.trim();
+    for (const ekesRow of ekesData) {
+      const bo = ekesRow.purchasingDocument.trim();
+      const borPid = ekesRow.reference.trim();
+      if (!bo || !borPid) continue;
 
-        const grMatches = msegData.filter(
-          row =>
-            row.purchaseOrder.trim().toLowerCase() === boVal.toLowerCase() &&
-            row.shortText.trim().toLowerCase().includes(pidVal.toLowerCase())
-        );
-
-        const grPid = grMatches.length > 0 ? grMatches[0].shortText.trim() : '';
-
-        let mismatch = '';
-        if (borPid.toUpperCase().startsWith('F_') && !grPid) {
-          mismatch = 'BOR FG and GR Mismatch';
-        }
-
-        borResults.push({
-          bo: ekesRow.purchasingDocument.trim(),
-          borPid,
-          grPid: grPid || '—',
-          mismatch: mismatch || 'BOR and GR are in sync',
-        });
+      // Extract the base PID by stripping known prefixes
+      let basePid = borPid;
+      const upper = borPid.toUpperCase();
+      if (upper.startsWith('P_') || upper.startsWith('W_') || upper.startsWith('F_')) {
+        basePid = borPid.substring(2);
       }
+
+      // Check MSEG for matching GR using the base PID
+      const msegMap = msegIndex.get(bo.toLowerCase());
+      const grFound = msegMap ? msegMap.has(basePid.toLowerCase()) : false;
+      const grPid = grFound ? basePid : '';
+      const materialDocument = (msegMap && grFound) ? msegMap.get(basePid.toLowerCase()) || '' : '';
+
+      let mismatch = 'BOR and GR are in sync';
+      if (upper.startsWith('F_') && !grFound) {
+        mismatch = 'BOR FG and GR Mismatch';
+      }
+
+      results.push({
+        bo,
+        borPid,
+        materialDocument: materialDocument || '—',
+        grPid: grPid || '—',
+        mismatch,
+      });
     }
 
-    setResults(borResults);
-    setSearched(true);
-  }, [ekesData, msegData, bo, pid]);
+    return results;
+  }, [ekesData, msegData]);
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
-  };
+  // Filter results
+  const filtered = useMemo(() => {
+    let result = allResults;
+
+    if (filterType === 'mismatch') {
+      result = result.filter(r => r.mismatch.includes('Mismatch'));
+    } else if (filterType === 'sync') {
+      result = result.filter(r => !r.mismatch.includes('Mismatch'));
+    }
+
+    if (filter) {
+      const lf = filter.toLowerCase();
+      result = result.filter(r =>
+        r.bo.toLowerCase().includes(lf) ||
+        r.borPid.toLowerCase().includes(lf) ||
+        r.grPid.toLowerCase().includes(lf)
+      );
+    }
+
+    return result;
+  }, [allResults, filter, filterType]);
+
+  const mismatchCount = useMemo(() => allResults.filter(r => r.mismatch.includes('Mismatch')).length, [allResults]);
+  const syncCount = allResults.length - mismatchCount;
 
   const needsEkes = !ekesData;
   const needsMseg = !msegData;
@@ -122,71 +106,62 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
     <div className="feature-panel">
       <h2>BOR and GR Mismatch</h2>
       <p className="feature-description">
-        Enter a BO (Purchasing Document) and PID to check for BOR/GR mismatches. The system searches EKES for BOR confirmation and MSEG for GR entry, flagging mismatches for F_ (Finished Goods) PIDs missing GR.
+        All EKES (BOR) records compared against MSEG (GR). F_ (Finished Goods) PIDs without a matching GR are flagged as mismatches.
       </p>
 
-      <div className="search-bar">
+      <div className="toolbar">
         <input
           type="text"
           className="input"
-          placeholder="Enter BO (Purchasing Document)..."
-          value={bo}
-          onChange={e => setBo(e.target.value)}
-          onKeyDown={handleKeyDown}
+          placeholder="Filter by BO or PID..."
+          value={filter}
+          onChange={e => setFilter(e.target.value)}
         />
-        <input
-          type="text"
-          className="input"
-          placeholder="Enter PID..."
-          value={pid}
-          onChange={e => setPid(e.target.value)}
-          onKeyDown={handleKeyDown}
-        />
-        <button className="btn btn--primary" onClick={handleSearch} disabled={!bo.trim() || !pid.trim()}>
-          Check Mismatch
-        </button>
+        <div className="filter-buttons">
+          <button className={`btn ${filterType === 'all' ? 'btn--primary' : 'btn--secondary'}`} onClick={() => setFilterType('all')}>
+            All ({allResults.length})
+          </button>
+          <button className={`btn ${filterType === 'mismatch' ? 'btn--primary' : 'btn--secondary'}`} onClick={() => setFilterType('mismatch')}>
+            Mismatches ({mismatchCount})
+          </button>
+          <button className={`btn ${filterType === 'sync' ? 'btn--primary' : 'btn--secondary'}`} onClick={() => setFilterType('sync')}>
+            In Sync ({syncCount})
+          </button>
+        </div>
       </div>
 
-      {searched && (
-        <div className="results-section">
-          {results.length === 0 ? (
-            <p className="empty-state">No matching records found for BO "{bo}" with PID "{pid}".</p>
-          ) : (
-            <>
-              <p className="record-count">{results.length} record{results.length > 1 ? 's' : ''} found</p>
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>BO</th>
-                      <th>BOR PID</th>
-                      <th>GR PID</th>
-                      <th>Mismatch</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {results.map((row, i) => {
-                      const isMismatch = row.mismatch.includes('Mismatch');
-                      return (
-                      <tr key={i} className={isMismatch ? 'row--error' : 'row--success'}>
-                        <td>{row.bo}</td>
-                        <td>{row.borPid}</td>
-                        <td>{row.grPid}</td>
-                        <td>
-                          <span className={`status-pill ${isMismatch ? 'status-pill--error' : 'status-pill--success'}`}>
-                            {row.mismatch}
-                          </span>
-                        </td>
-                      </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          )}
-        </div>
-      )}
+      <p className="record-count">{filtered.length} of {allResults.length} records shown</p>
+      <div className="table-wrapper">
+        <table className="data-table">
+          <thead>
+            <tr>
+              <th>BO</th>
+              <th>BOR PID</th>
+              <th>Material Document</th>
+              <th>GR PID</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((row, i) => {
+              const isMismatch = row.mismatch.includes('Mismatch');
+              return (
+              <tr key={i} className={isMismatch ? 'row--error' : 'row--success'}>
+                <td>{row.bo}</td>
+                <td>{row.borPid}</td>
+                <td>{row.materialDocument}</td>
+                <td>{row.grPid}</td>
+                <td>
+                  <span className={`status-pill ${isMismatch ? 'status-pill--error' : 'status-pill--success'}`}>
+                    {row.mismatch}
+                  </span>
+                </td>
+              </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

@@ -53,6 +53,7 @@ export interface RsnResult {
 export interface BorGrResult {
   bo: string;
   borPid: string;
+  materialDocument: string;
   grPid: string;
   mismatch: string;
 }

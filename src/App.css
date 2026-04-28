@@ -882,6 +882,9 @@ body {
 .stats-bar-row--clickable:hover {
   background: rgba(21, 101, 192, 0.06);
 }
+.stats-bar-row--active {
+  background: rgba(21, 101, 192, 0.1);
+}
 .stats-bar-row--clickable .stats-bar-label {
   text-decoration: underline;
   text-decoration-style: dotted;

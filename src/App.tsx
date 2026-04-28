@@ -5,6 +5,7 @@ import IdocStatus from './components/IdocStatus';
 import CidStatus from './components/CidStatus';
 import RsnStatus from './components/RsnStatus';
 import BorGrMismatch from './components/BorGrMismatch';
+import StatsDashboard from './components/StatsDashboard';
 import './App.css';
 
 const DB_NAME = 'bo-dashboard';
@@ -46,7 +47,7 @@ async function saveFilesToDB(files: UploadedFiles) {
   } catch { /* silently ignore */ }
 }
 
-type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr';
+type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr' | 'stats';
 
 const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = [
   { id: 'upload', icon: '📁', title: 'SAP Input Data', desc: 'Upload SAP Data.' },
@@ -54,6 +55,7 @@ const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = 
   { id: 'cid', icon: '🔎', title: 'CID Processing Status', desc: 'Look up CID processing status.' },
   { id: 'rsn', icon: '✅', title: 'RSN Status', desc: 'Verify the receipt of RSN into SAP ECC.' },
   { id: 'bor-gr', icon: '⚠️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
+  { id: 'stats', icon: '📊', title: 'Stats Dashboard', desc: 'Key metrics — BOR and GR received counts and more.' },
 ];
 
 function App() {
@@ -116,6 +118,7 @@ function App() {
             {activePanel === 'cid' && <CidStatus data={files.edidc} />}
             {activePanel === 'rsn' && <RsnStatus data={files.rsn} />}
             {activePanel === 'bor-gr' && <BorGrMismatch ekesData={files.ekes} msegData={files.mseg} />}
+            {activePanel === 'stats' && <StatsDashboard edidcData={files.edidc} />}
           </div>
         )}
       </main>

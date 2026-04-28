@@ -728,6 +728,51 @@ body {
   pointer-events: none;
 }
 
+/* Stats Dashboard */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.stats-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.stats-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+.stats-card__value {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+}
+.stats-card--bor .stats-card__value { color: #1565c0; }
+.stats-card--gr .stats-card__value { color: var(--primary); }
+.stats-card--other .stats-card__value { color: #757575; }
+
+.stats-card__label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.stats-card__sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 /* Footer */
 .app-footer {
   text-align: center;

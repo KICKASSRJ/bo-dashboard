@@ -17,8 +17,6 @@ interface FileState {
   rowCount: number;
 }
 
-const FILE_TYPES: FileType[] = ['edidc', 'mseg', 'ekes', 'rsn'];
-
 const FILE_CONFIG: { key: FileType; label: string; description: string }[] = [
   { key: 'edidc', label: 'EDIDC', description: 'IDoc Control Records — contains Message Type, IDoc number, status, EDI Archive Key, etc.' },
   { key: 'mseg', label: 'MSEG', description: 'Material Document Segment — contains Purchase Order, Short Text for GR matching.' },

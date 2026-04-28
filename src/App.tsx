@@ -59,7 +59,7 @@ const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = 
 function App() {
   const [activePanel, setActivePanel] = useState<ActivePanel>(null);
   const [files, setFiles] = useState<UploadedFiles>({ edidc: null, mseg: null, ekes: null, rsn: null });
-  const [loaded, setLoaded] = useState(false);
+  const [, setLoaded] = useState(false);
 
   // Load persisted data from IndexedDB on mount
   useEffect(() => {

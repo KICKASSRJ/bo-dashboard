@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import type { EkesRecord, MsegRecord, BorGrResult } from '../types';
 
 interface BorGrMismatchProps {

@@ -15,7 +15,7 @@ export default function StatsDashboard({ edidcData }: StatsDashboardProps) {
 
     for (const row of edidcData) {
       const mt = row.messageType.trim().toUpperCase();
-      if (mt === 'ORDSP') {
+      if (mt === 'ORDRSP') {
         borCount++;
       } else if (mt === 'WMMBXY') {
         grCount++;
@@ -58,7 +58,7 @@ export default function StatsDashboard({ edidcData }: StatsDashboardProps) {
         <div className="stats-card stats-card--bor">
           <span className="stats-card__value">{stats.borCount.toLocaleString()}</span>
           <span className="stats-card__label">BOR Received</span>
-          <span className="stats-card__sub">Message Type: ORDSP</span>
+          <span className="stats-card__sub">Message Type: ORDRSP</span>
         </div>
         <div className="stats-card stats-card--gr">
           <span className="stats-card__value">{stats.grCount.toLocaleString()}</span>

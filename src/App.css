@@ -871,6 +871,59 @@ body {
   color: var(--accent);
 }
 
+/* Clickable bar row */
+.stats-bar-row--clickable {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 4px 6px;
+  margin: -4px -6px;
+  transition: background 0.15s;
+}
+.stats-bar-row--clickable:hover {
+  background: rgba(21, 101, 192, 0.06);
+}
+.stats-bar-row--clickable .stats-bar-label {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.stats-chart-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Drill-down panel */
+.stats-drilldown {
+  margin-top: 1.5rem;
+  background: #fff;
+  border: 2px solid #1565c0;
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.stats-drilldown__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.stats-drilldown__close {
+  font-size: 0.85rem;
+  padding: 0.3rem 0.75rem;
+}
+
+.stats-drilldown__sub {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+/* Pass/Fail card colors */
+.stats-card--passed .stats-card__value { color: #16794a; }
+.stats-card--failed .stats-card__value { color: #c0392b; }
+
 /* Footer */
 .app-footer {
   text-align: center;

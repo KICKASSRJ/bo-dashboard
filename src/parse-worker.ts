@@ -192,6 +192,9 @@ function parseEdidc(file: ArrayBuffer): ParseResult {
       timeChanged: getCellValue(row, cm.timeChanged),
     });
   }
+  if (data.length > 0) {
+    console.log('[EDIDC] First record logicalRecipient:', JSON.stringify(data[0].logicalRecipient), '| row length:', (raw[1] as unknown[])?.length, '| col index:', cm.logicalRecipient);
+  }
   return { data, errors: [], rowCount: data.length };
 }
 

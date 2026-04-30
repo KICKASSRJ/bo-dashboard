@@ -50,6 +50,7 @@ export default function CidStatus({ data }: CidStatusProps) {
           idocStatus: '',
           statusDescription: '',
           displayStatus: 'CID not received in SAP',
+          sender: '—',
           messageType: '—',
           senderPartnerNo: '—',
           createdOn: '—',
@@ -66,6 +67,7 @@ export default function CidStatus({ data }: CidStatusProps) {
             idocStatus: statusCode,
             statusDescription: description,
             displayStatus: `${statusCode} – ${description}`,
+            sender: row.logicalRecipient,
             messageType: row.messageType,
             senderPartnerNo: row.senderPartnerNo,
             createdOn: row.createdOn,
@@ -152,6 +154,7 @@ export default function CidStatus({ data }: CidStatusProps) {
                       <th>Correlation ID</th>
                       <th>IDoc Number</th>
                       <th>Status</th>
+                      <th>Sender</th>
                       <th>Message Type</th>
                       <th>Sender Partner No.</th>
                       <th>Created On</th>
@@ -164,6 +167,7 @@ export default function CidStatus({ data }: CidStatusProps) {
                         <td className="nowrap">{row.correlationId}</td>
                         <td>{row.idocNumber}</td>
                         <td className="nowrap"><strong>{row.displayStatus}</strong></td>
+                        <td>{row.sender}</td>
                         <td>{row.messageType}</td>
                         <td>{row.senderPartnerNo}</td>
                         <td>{row.createdOn}</td>

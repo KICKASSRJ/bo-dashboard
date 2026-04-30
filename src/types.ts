@@ -3,6 +3,7 @@ export interface EdidcRecord {
   idocNumber: string;
   idocStatus: string;
   senderPartnerNo: string;
+  logicalRecipient: string;
   ediArchiveKey: string;
   createdOn: string;
   createdAt: string;
@@ -41,6 +42,7 @@ export interface CidResult {
   idocStatus: string;
   statusDescription: string;
   displayStatus: string;
+  sender: string;
   messageType: string;
   senderPartnerNo: string;
   createdOn: string;

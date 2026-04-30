@@ -111,7 +111,31 @@ export default function CidStatus({ data }: CidStatusProps) {
       {searched && (
         <div className="results-section">
           {results.length === 0 ? (
-            <p className="empty-state">No records found for CID "{cid}".</p>
+            <>
+              <p className="record-count">0 records found</p>
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Correlation ID</th>
+                      <th>Status</th>
+                      <th>Message Type</th>
+                      <th>Sender Partner No.</th>
+                      <th>Created On</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="row--error">
+                      <td>{cid}</td>
+                      <td><strong>Not found in uploaded data</strong></td>
+                      <td>—</td>
+                      <td>—</td>
+                      <td>—</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </>
           ) : (
             <>
               <p className="record-count">{results.length} record{results.length > 1 ? 's' : ''} found</p>

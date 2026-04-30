@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { EdidcRecord, CidResult } from '../types';
 import { IDOC_STATUS_MAP } from '../types';
 
@@ -10,6 +10,14 @@ export default function CidStatus({ data }: CidStatusProps) {
   const [cid, setCid] = useState('');
   const [results, setResults] = useState<CidResult[]>([]);
   const [searched, setSearched] = useState(false);
+
+  const sampleCids = useMemo(() => [
+    '1a5e0e82-3627-470f-b1c3-815cc08ba2bd',
+    'adf59ffa-bc1c-4c38-b3da-41b6dfb6c170',
+    '3371eb9f-1179-416c-b337-96fc31a1a509',
+    '453e197e-39d0-4d8c-95f2-add9bd1148bf',
+    '30e8a8b2-b2e5-41e5-a73e-7a27f9a8defd',
+  ], []);
 
   const handleSearch = useCallback(() => {
     if (!data || !cid.trim()) return;
@@ -72,6 +80,16 @@ export default function CidStatus({ data }: CidStatusProps) {
       <div className="feature-panel">
         <h2>Correlation ID Processing Status</h2>
         <p className="empty-state">Please upload an EDIDC file first.</p>
+        <div className="sample-data">
+          <p className="sample-data__label">Sample Correlation IDs (click to use):</p>
+          <div className="sample-data__list">
+            {sampleCids.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -100,6 +118,19 @@ export default function CidStatus({ data }: CidStatusProps) {
           </button>
         )}
       </div>
+
+      {!searched && (
+        <div className="sample-data">
+          <p className="sample-data__label">Sample Correlation IDs (click to use):</p>
+          <div className="sample-data__list">
+            {sampleCids.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {searched && (
         <div className="results-section">

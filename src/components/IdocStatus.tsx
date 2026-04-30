@@ -90,14 +90,18 @@ export default function IdocStatus({ data }: IdocStatusProps) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((row, i) => (
-              <tr key={i}>
-                {columns.map(col => (
-                  <td key={col.key}>{row[col.key]}</td>
-                ))}
-                <td>{IDOC_STATUS_MAP[row.idocStatus] || 'Unknown'}</td>
-              </tr>
-            ))}
+            {filtered.map((row, i) => {
+              const status = row.idocStatus.trim();
+              const rowClass = status === '53' ? 'row--success' : status === '51' ? 'row--error' : '';
+              return (
+                <tr key={i} className={rowClass}>
+                  {columns.map(col => (
+                    <td key={col.key}>{row[col.key]}</td>
+                  ))}
+                  <td>{IDOC_STATUS_MAP[row.idocStatus] || 'Unknown'}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

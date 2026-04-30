@@ -4,6 +4,7 @@ export interface EdidcRecord {
   idocStatus: string;
   senderPartnerNo: string;
   logicalRecipient: string;
+  logicalSender: string;
   ediArchiveKey: string;
   createdOn: string;
   createdAt: string;

@@ -141,6 +141,7 @@ function parseEdidc(file: ArrayBuffer): ParseResult {
   if ('errors' in sheet) return { data: [], errors: sheet.errors, rowCount: 0 };
 
   const { raw, headers } = sheet;
+  console.log('[EDIDC] All column headers found:', headers);
   const cm = {
     messageType: findColumn(headers, 'Message Type', 'message type', 'msg type'),
     idocNumber: findColumn(headers, 'IDoc number', 'idoc number', 'idoc no', 'idoc no.'),
@@ -153,6 +154,20 @@ function parseEdidc(file: ArrayBuffer): ParseResult {
     changedOn: findColumn(headers, 'Changed on', 'changed on', 'changed date'),
     timeChanged: findColumn(headers, 'Time changed', 'time changed', 'changed time'),
   };
+
+  // Fallback: if logicalRecipient not found, search for any header containing 'recipient' or 'rcvpor'
+  if (cm.logicalRecipient < 0) {
+    const normalized = headers.map(h => h.trim().toLowerCase());
+    const idx = normalized.findIndex(h => h.includes('recipient') || h.includes('rcvpor'));
+    if (idx !== -1) {
+      console.log('[EDIDC] Logical recipient fallback matched header:', headers[idx], 'at index', idx);
+      cm.logicalRecipient = idx;
+    } else {
+      console.warn('[EDIDC] Could not find Logical address of recipient column. Headers:', headers.join(', '));
+    }
+  } else {
+    console.log('[EDIDC] Logical recipient column found at index', cm.logicalRecipient, ':', headers[cm.logicalRecipient]);
+  }
 
   const missing: string[] = [];
   if (cm.idocNumber < 0) missing.push('IDoc number');

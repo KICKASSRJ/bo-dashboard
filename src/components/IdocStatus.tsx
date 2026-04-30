@@ -92,7 +92,7 @@ export default function IdocStatus({ data }: IdocStatusProps) {
           <tbody>
             {filtered.map((row, i) => {
               const status = row.idocStatus.trim();
-              const rowClass = status === '53' ? 'row--success' : status === '51' ? 'row--error' : '';
+              const rowClass = status === '53' ? 'row--success' : (status === '51' || status === '68') ? 'row--error' : '';
               return (
                 <tr key={i} className={rowClass}>
                   {columns.map(col => (

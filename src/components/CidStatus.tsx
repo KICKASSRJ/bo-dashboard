@@ -13,7 +13,7 @@ export default function CidStatus({ data }: CidStatusProps) {
 
   // Get unique sample CIDs from uploaded data
   const sampleCids = useMemo(() => {
-    const hardcoded = ['65b2b2cf-d73b-42ad-bf31-5eb57d33f435', '8D133676-9df4-4378-9af2-46776a0630c1'];
+    const hardcoded = ['1b503c18-fef8-40be-8860-274914f4b757', '06ba662f-5883-40d9-9e6c-25e81a551128'];
     if (!data) return hardcoded;
     const fromData = [...new Set(data.map(r => r.ediArchiveKey.trim()).filter(Boolean))];
     // Merge hardcoded first, then up to 3 from data (avoid duplicates)

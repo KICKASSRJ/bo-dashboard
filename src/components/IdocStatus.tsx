@@ -73,6 +73,11 @@ export default function IdocStatus({ data }: IdocStatusProps) {
           value={filter}
           onChange={e => setFilter(e.target.value)}
         />
+        {filter && (
+          <button className="btn btn--secondary" onClick={() => setFilter('')}>
+            Clear
+          </button>
+        )}
         <span className="record-count">{filtered.length} of {data.length} records</span>
       </div>
 

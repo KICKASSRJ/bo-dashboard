@@ -88,6 +88,11 @@ export default function RsnStatus({ data }: RsnStatusProps) {
         <button className="btn btn--primary" onClick={handleSearch} disabled={!input.trim()}>
           Check Status
         </button>
+        {(input || searched) && (
+          <button className="btn btn--secondary" onClick={() => { setInput(''); setResults([]); setSearched(false); }}>
+            Clear
+          </button>
+        )}
       </div>
 
       {sampleRsns.length > 0 && !searched && (

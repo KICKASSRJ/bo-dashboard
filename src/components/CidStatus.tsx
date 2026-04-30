@@ -116,6 +116,11 @@ export default function CidStatus({ data }: CidStatusProps) {
         <button className="btn btn--primary" onClick={handleSearch} disabled={!cid.trim()}>
           Search
         </button>
+        {(cid || searched) && (
+          <button className="btn btn--secondary" onClick={() => { setCid(''); setResults([]); setSearched(false); }}>
+            Clear
+          </button>
+        )}
       </div>
 
       {sampleCids.length > 0 && !searched && (

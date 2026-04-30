@@ -147,6 +147,11 @@ export default function BorGrMismatch({ ekesData, msegData }: BorGrMismatchProps
           value={filter}
           onChange={e => setFilter(e.target.value)}
         />
+        {(filter || filterType !== 'all') && (
+          <button className="btn btn--secondary" onClick={() => { setFilter(''); setFilterType('all'); }}>
+            Clear
+          </button>
+        )}
         <div className="filter-buttons">
           <button className={`btn ${filterType === 'all' ? 'btn--primary' : 'btn--secondary'}`} onClick={() => setFilterType('all')}>
             All ({allResults.length})

@@ -51,7 +51,7 @@ export default function CidStatus({ data }: CidStatusProps) {
   if (!data) {
     return (
       <div className="feature-panel">
-        <h2>CID Processing Status</h2>
+        <h2>Correlation ID Processing Status</h2>
         <p className="empty-state">Please upload an EDIDC file first.</p>
       </div>
     );
@@ -59,16 +59,16 @@ export default function CidStatus({ data }: CidStatusProps) {
 
   return (
     <div className="feature-panel">
-      <h2>CID Processing Status</h2>
+      <h2>Correlation ID Processing Status</h2>
       <p className="feature-description">
-        Look up CID processing status. If multiple records exist for the same CID, all are displayed.
+        Look up Correlation ID processing status. If multiple records exist for the same Correlation ID, all are displayed.
       </p>
 
       <div className="search-bar">
         <input
           type="text"
           className="input"
-          placeholder="Enter CID (EDI Archive Key)..."
+          placeholder="Enter Correlation ID..."
           value={cid}
           onChange={e => setCid(e.target.value)}
           onKeyDown={handleKeyDown}

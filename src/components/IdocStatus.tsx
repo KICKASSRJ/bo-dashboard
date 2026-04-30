@@ -16,7 +16,7 @@ export default function IdocStatus({ data }: IdocStatusProps) {
     { key: 'idocNumber', label: 'IDoc Number' },
     { key: 'idocStatus', label: 'IDoc Status' },
     { key: 'senderPartnerNo', label: 'Sender Partner No.' },
-    { key: 'ediArchiveKey', label: 'EDI Archive Key' },
+    { key: 'ediArchiveKey', label: 'Correlation ID' },
     { key: 'createdOn', label: 'Created On' },
     { key: 'createdAt', label: 'Created At' },
     { key: 'changedOn', label: 'Changed On' },

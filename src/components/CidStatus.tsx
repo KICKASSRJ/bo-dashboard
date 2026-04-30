@@ -13,9 +13,16 @@ export default function CidStatus({ data }: CidStatusProps) {
 
   // Get unique sample CIDs from uploaded data
   const sampleCids = useMemo(() => {
-    if (!data) return [];
-    const unique = [...new Set(data.map(r => r.ediArchiveKey.trim()).filter(Boolean))];
-    return unique.slice(0, 5);
+    const hardcoded = ['65b2b2cf-d73b-42ad-bf31-5eb57d33f435', '8D133676-9df4-4378-9af2-46776a0630c1'];
+    if (!data) return hardcoded;
+    const fromData = [...new Set(data.map(r => r.ediArchiveKey.trim()).filter(Boolean))];
+    // Merge hardcoded first, then up to 3 from data (avoid duplicates)
+    const all = [...hardcoded];
+    for (const v of fromData) {
+      if (!all.some(a => a.toLowerCase() === v.toLowerCase())) all.push(v);
+      if (all.length >= 5) break;
+    }
+    return all;
   }, [data]);
 
   const handleSearch = useCallback(() => {
@@ -53,6 +60,16 @@ export default function CidStatus({ data }: CidStatusProps) {
       <div className="feature-panel">
         <h2>Correlation ID Processing Status</h2>
         <p className="empty-state">Please upload an EDIDC file first.</p>
+        <div className="sample-data">
+          <p className="sample-data__label">Sample Correlation IDs (click to copy):</p>
+          <div className="sample-data__list">
+            {sampleCids.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setCid(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -80,7 +97,7 @@ export default function CidStatus({ data }: CidStatusProps) {
 
       {sampleCids.length > 0 && !searched && (
         <div className="sample-data">
-          <p className="sample-data__label">Sample CIDs from uploaded data (click to use):</p>
+          <p className="sample-data__label">Sample Correlation IDs from uploaded data (click to use):</p>
           <div className="sample-data__list">
             {sampleCids.map((s, i) => (
               <button key={i} className="sample-data__item" onClick={() => setCid(s)}>

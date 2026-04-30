@@ -12,9 +12,16 @@ export default function RsnStatus({ data }: RsnStatusProps) {
 
   // Get unique sample RSN values from uploaded data
   const sampleRsns = useMemo(() => {
-    if (!data) return [];
-    const unique = [...new Set(data.map(r => r.rsn.trim()).filter(Boolean))];
-    return unique.slice(0, 5);
+    const hardcoded = ['R574452560002060', 'R518652560002045'];
+    if (!data) return hardcoded;
+    const fromData = [...new Set(data.map(r => r.rsn.trim()).filter(Boolean))];
+    // Merge hardcoded first, then up to 3 from data (avoid duplicates)
+    const all = [...hardcoded];
+    for (const v of fromData) {
+      if (!all.some(a => a.toLowerCase() === v.toLowerCase())) all.push(v);
+      if (all.length >= 5) break;
+    }
+    return all;
   }, [data]);
 
   const handleSearch = useCallback(() => {
@@ -49,6 +56,16 @@ export default function RsnStatus({ data }: RsnStatusProps) {
       <div className="feature-panel">
         <h2>RSN Status</h2>
         <p className="empty-state">Please upload an RSN Header file first.</p>
+        <div className="sample-data">
+          <p className="sample-data__label">Sample RSN values (click to copy):</p>
+          <div className="sample-data__list">
+            {sampleRsns.map((s, i) => (
+              <button key={i} className="sample-data__item" onClick={() => setInput(prev => prev ? `${prev}, ${s}` : s)}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

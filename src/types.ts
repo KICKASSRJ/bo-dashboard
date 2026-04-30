@@ -44,6 +44,7 @@ export interface CidResult {
   messageType: string;
   senderPartnerNo: string;
   createdOn: string;
+  createdAt: string;
 }
 
 export interface RsnResult {
@@ -61,6 +62,7 @@ export interface BorGrResult {
 }
 
 export const IDOC_STATUS_MAP: Record<string, string> = {
+  '03': 'Data passed to port OK',
   '53': 'Application document posted',
   '51': 'Application document not posted',
   '64': 'IDoc ready to be processed (inbound)',

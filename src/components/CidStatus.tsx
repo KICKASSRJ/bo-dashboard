@@ -53,6 +53,7 @@ export default function CidStatus({ data }: CidStatusProps) {
           messageType: '—',
           senderPartnerNo: '—',
           createdOn: '—',
+          createdAt: '—',
         });
       } else {
         for (const row of matches) {
@@ -68,6 +69,7 @@ export default function CidStatus({ data }: CidStatusProps) {
             messageType: row.messageType,
             senderPartnerNo: row.senderPartnerNo,
             createdOn: row.createdOn,
+            createdAt: row.createdAt,
           });
         }
       }
@@ -148,6 +150,7 @@ export default function CidStatus({ data }: CidStatusProps) {
                       <th>Message Type</th>
                       <th>Sender Partner No.</th>
                       <th>Created On</th>
+                      <th>Created At</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -159,6 +162,7 @@ export default function CidStatus({ data }: CidStatusProps) {
                         <td>{row.messageType}</td>
                         <td>{row.senderPartnerNo}</td>
                         <td>{row.createdOn}</td>
+                        <td>{row.createdAt}</td>
                       </tr>
                     ))}
                   </tbody>

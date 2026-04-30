@@ -156,7 +156,6 @@ export default function CidStatus({ data }: CidStatusProps) {
                       <th>Status</th>
                       <th>Sender</th>
                       <th>Message Type</th>
-                      <th>Sender Partner No.</th>
                       <th>Created On</th>
                       <th>Created At</th>
                     </tr>
@@ -169,7 +168,6 @@ export default function CidStatus({ data }: CidStatusProps) {
                         <td className="nowrap"><strong>{row.displayStatus}</strong></td>
                         <td>{row.sender}</td>
                         <td>{row.messageType}</td>
-                        <td>{row.senderPartnerNo}</td>
                         <td>{row.createdOn}</td>
                         <td>{row.createdAt}</td>
                       </tr>

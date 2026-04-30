@@ -11,6 +11,12 @@ function findColumn(headers: string[], ...candidates: string[]): number {
     const idx = normalized.indexOf(candidate.toLowerCase());
     if (idx !== -1) return idx;
   }
+  // Fallback: partial match (header contains candidate or candidate contains header)
+  for (const candidate of candidates) {
+    const lc = candidate.toLowerCase();
+    const idx = normalized.findIndex(h => h.includes(lc) || lc.includes(h));
+    if (idx !== -1) return idx;
+  }
   return -1;
 }
 
@@ -153,7 +159,7 @@ export function parseEdidcFile(file: ArrayBuffer): ParseResult<EdidcRecord> {
     idocNumber: findColumn(headers, 'IDoc number', 'idoc number', 'idoc no', 'idoc no.'),
     idocStatus: findColumn(headers, 'IDoc Status', 'idoc status', 'status'),
     senderPartnerNo: findColumn(headers, 'Sender partner no.', 'sender partner no', 'sender partner', 'partner no'),
-    logicalRecipient: findColumn(headers, 'Logical address of recipient', 'logical address of recipient', 'rcvpor', 'logical recipient'),
+    logicalRecipient: findColumn(headers, 'Logical address of recipient', 'logical address of recipient', 'rcvpor', 'logical recipient', 'log.addr.of recip.', 'recipient port', 'receiver port'),
     ediArchiveKey: findColumn(headers, 'EDI Archive Key', 'edi archive key', 'archive key'),
     createdOn: findColumn(headers, 'Created On', 'created on', 'created date'),
     createdAt: findColumn(headers, 'Created at', 'created at', 'created time'),

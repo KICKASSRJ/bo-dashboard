@@ -82,7 +82,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="header-content">
-          <h1 className="app-title">BO Self Serve Dashboard</h1>
+          <h1 className="app-title">BO Self Serve Dashboard (POC)</h1>
           <p className="app-subtitle">Build Order Status & Anomaly Detection</p>
         </div>
       </header>

@@ -62,8 +62,8 @@ export interface BorGrResult {
 }
 
 export const IDOC_STATUS_MAP: Record<string, string> = {
-  '03': 'Data passed to port OK',
-  '53': 'Application document posted',
+  '03': 'Ack sent from SAP successfully',
+  '53': 'Signal successfully processed in SAP',
   '51': 'Application document not posted',
   '64': 'IDoc ready to be processed (inbound)',
   '68': 'Error, no further processing',

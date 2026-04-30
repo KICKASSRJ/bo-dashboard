@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import type { EdidcRecord, CidResult } from '../types';
 import { IDOC_STATUS_MAP } from '../types';
 
@@ -10,20 +10,6 @@ export default function CidStatus({ data }: CidStatusProps) {
   const [cid, setCid] = useState('');
   const [results, setResults] = useState<CidResult[]>([]);
   const [searched, setSearched] = useState(false);
-
-  // Get unique sample CIDs from uploaded data
-  const sampleCids = useMemo(() => {
-    const hardcoded = ['1b503c18-fef8-40be-8860-274914f4b757', '06ba662f-5883-40d9-9e6c-25e81a551128'];
-    if (!data) return hardcoded;
-    const fromData = [...new Set(data.map(r => r.ediArchiveKey.trim()).filter(Boolean))];
-    // Merge hardcoded first, then up to 3 from data (avoid duplicates)
-    const all = [...hardcoded];
-    for (const v of fromData) {
-      if (!all.some(a => a.toLowerCase() === v.toLowerCase())) all.push(v);
-      if (all.length >= 5) break;
-    }
-    return all;
-  }, [data]);
 
   const handleSearch = useCallback(() => {
     if (!data || !cid.trim()) return;
@@ -86,16 +72,6 @@ export default function CidStatus({ data }: CidStatusProps) {
       <div className="feature-panel">
         <h2>Correlation ID Processing Status</h2>
         <p className="empty-state">Please upload an EDIDC file first.</p>
-        <div className="sample-data">
-          <p className="sample-data__label">Sample Correlation IDs (click to copy):</p>
-          <div className="sample-data__list">
-            {sampleCids.map((s, i) => (
-              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     );
   }
@@ -124,19 +100,6 @@ export default function CidStatus({ data }: CidStatusProps) {
           </button>
         )}
       </div>
-
-      {sampleCids.length > 0 && !searched && (
-        <div className="sample-data">
-          <p className="sample-data__label">Sample Correlation IDs from uploaded data (click to use):</p>
-          <div className="sample-data__list">
-            {sampleCids.map((s, i) => (
-              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {searched && (
         <div className="results-section">

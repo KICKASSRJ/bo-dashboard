@@ -15,7 +15,7 @@ export default function IdocStatus({ data }: IdocStatusProps) {
     { key: 'messageType', label: 'Message Type' },
     { key: 'idocNumber', label: 'IDoc Number' },
     { key: 'idocStatus', label: 'IDoc Status' },
-    { key: 'logicalSender', label: 'Sender' },
+    { key: 'logicalRecipient', label: 'Sender' },
     { key: 'ediArchiveKey', label: 'Correlation ID' },
     { key: 'createdOn', label: 'Created On' },
     { key: 'createdAt', label: 'Created At' },

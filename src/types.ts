@@ -35,6 +35,8 @@ export interface UploadedFiles {
 }
 
 export interface CidResult {
+  correlationId: string;
+  found: boolean;
   idocNumber: string;
   idocStatus: string;
   statusDescription: string;

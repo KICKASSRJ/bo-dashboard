@@ -28,32 +28,54 @@ export default function CidStatus({ data }: CidStatusProps) {
   const handleSearch = useCallback(() => {
     if (!data || !cid.trim()) return;
 
-    const searchKey = cid.trim();
-    const matches = data.filter(row =>
-      row.ediArchiveKey.trim().toLowerCase() === searchKey.toLowerCase()
-    );
+    const cidValues = cid
+      .split(/[,\n]+/)
+      .map(v => v.trim())
+      .filter(v => v.length > 0);
 
-    const cidResults: CidResult[] = matches.map(row => {
-      const statusCode = row.idocStatus.trim();
-      const description = IDOC_STATUS_MAP[statusCode] || 'Unknown status';
-      return {
-        idocNumber: row.idocNumber,
-        idocStatus: statusCode,
-        statusDescription: description,
-        displayStatus: `${statusCode} – ${description}`,
-        messageType: row.messageType,
-        senderPartnerNo: row.senderPartnerNo,
-        createdOn: row.createdOn,
-      };
-    });
+    if (cidValues.length === 0) return;
+
+    const cidResults: CidResult[] = [];
+
+    for (const searchKey of cidValues) {
+      const matches = data.filter(row =>
+        row.ediArchiveKey.trim().toLowerCase() === searchKey.toLowerCase()
+      );
+
+      if (matches.length === 0) {
+        cidResults.push({
+          correlationId: searchKey,
+          found: false,
+          idocNumber: '—',
+          idocStatus: '',
+          statusDescription: '',
+          displayStatus: 'CID not received in SAP',
+          messageType: '—',
+          senderPartnerNo: '—',
+          createdOn: '—',
+        });
+      } else {
+        for (const row of matches) {
+          const statusCode = row.idocStatus.trim();
+          const description = IDOC_STATUS_MAP[statusCode] || 'Unknown status';
+          cidResults.push({
+            correlationId: searchKey,
+            found: true,
+            idocNumber: row.idocNumber,
+            idocStatus: statusCode,
+            statusDescription: description,
+            displayStatus: `${statusCode} – ${description}`,
+            messageType: row.messageType,
+            senderPartnerNo: row.senderPartnerNo,
+            createdOn: row.createdOn,
+          });
+        }
+      }
+    }
 
     setResults(cidResults);
     setSearched(true);
   }, [data, cid]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleSearch();
-  };
 
   if (!data) {
     return (
@@ -64,7 +86,7 @@ export default function CidStatus({ data }: CidStatusProps) {
           <p className="sample-data__label">Sample Correlation IDs (click to copy):</p>
           <div className="sample-data__list">
             {sampleCids.map((s, i) => (
-              <button key={i} className="sample-data__item" onClick={() => setCid(s)}>
+              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
                 {s}
               </button>
             ))}
@@ -78,17 +100,16 @@ export default function CidStatus({ data }: CidStatusProps) {
     <div className="feature-panel">
       <h2>Correlation ID Processing Status</h2>
       <p className="feature-description">
-        Look up Correlation ID processing status. If multiple records exist for the same Correlation ID, all are displayed.
+        Look up Correlation ID processing status. Enter one or more Correlation IDs (comma-separated or one per line).
       </p>
 
-      <div className="search-bar">
-        <input
-          type="text"
-          className="input"
-          placeholder="Enter Correlation ID..."
+      <div className="search-bar search-bar--vertical">
+        <textarea
+          className="input textarea"
+          placeholder="Enter Correlation IDs (comma-separated or one per line)..."
           value={cid}
           onChange={e => setCid(e.target.value)}
-          onKeyDown={handleKeyDown}
+          rows={4}
         />
         <button className="btn btn--primary" onClick={handleSearch} disabled={!cid.trim()}>
           Search
@@ -100,7 +121,7 @@ export default function CidStatus({ data }: CidStatusProps) {
           <p className="sample-data__label">Sample Correlation IDs from uploaded data (click to use):</p>
           <div className="sample-data__list">
             {sampleCids.map((s, i) => (
-              <button key={i} className="sample-data__item" onClick={() => setCid(s)}>
+              <button key={i} className="sample-data__item" onClick={() => setCid(prev => prev ? `${prev}, ${s}` : s)}>
                 {s}
               </button>
             ))}
@@ -111,38 +132,17 @@ export default function CidStatus({ data }: CidStatusProps) {
       {searched && (
         <div className="results-section">
           {results.length === 0 ? (
+            <p className="empty-state">No Correlation IDs entered.</p>
+          ) : (
             <>
-              <p className="record-count">0 records found</p>
+              <p className="record-count">
+                {results.filter(r => r.found).length} of {results.length} record{results.length > 1 ? 's' : ''} found in SAP
+              </p>
               <div className="table-wrapper">
                 <table className="data-table">
                   <thead>
                     <tr>
                       <th>Correlation ID</th>
-                      <th>Status</th>
-                      <th>Message Type</th>
-                      <th>Sender Partner No.</th>
-                      <th>Created On</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="row--error">
-                      <td>{cid}</td>
-                      <td><strong>Not found in uploaded data</strong></td>
-                      <td>—</td>
-                      <td>—</td>
-                      <td>—</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="record-count">{results.length} record{results.length > 1 ? 's' : ''} found</p>
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr>
                       <th>IDoc Number</th>
                       <th>Status</th>
                       <th>Message Type</th>
@@ -152,7 +152,8 @@ export default function CidStatus({ data }: CidStatusProps) {
                   </thead>
                   <tbody>
                     {results.map((row, i) => (
-                      <tr key={i} className={row.idocStatus === '68' || row.idocStatus === '51' ? 'row--error' : 'row--success'}>
+                      <tr key={i} className={!row.found || row.idocStatus === '68' || row.idocStatus === '51' ? 'row--error' : 'row--success'}>
+                        <td>{row.correlationId}</td>
                         <td>{row.idocNumber}</td>
                         <td><strong>{row.displayStatus}</strong></td>
                         <td>{row.messageType}</td>

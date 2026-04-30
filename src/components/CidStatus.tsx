@@ -161,9 +161,9 @@ export default function CidStatus({ data }: CidStatusProps) {
                   <tbody>
                     {results.map((row, i) => (
                       <tr key={i} className={!row.found || row.idocStatus === '68' || row.idocStatus === '51' ? 'row--error' : 'row--success'}>
-                        <td>{row.correlationId}</td>
+                        <td className="nowrap">{row.correlationId}</td>
                         <td>{row.idocNumber}</td>
-                        <td><strong>{row.displayStatus}</strong></td>
+                        <td className="nowrap"><strong>{row.displayStatus}</strong></td>
                         <td>{row.messageType}</td>
                         <td>{row.senderPartnerNo}</td>
                         <td>{row.createdOn}</td>

@@ -541,6 +541,10 @@ body {
   border-bottom: none;
 }
 
+.data-table td.nowrap {
+  white-space: nowrap;
+}
+
 .row--success td {
   background: var(--success-light);
 }

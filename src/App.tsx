@@ -51,9 +51,9 @@ type ActivePanel = null | 'upload' | 'idoc' | 'cid' | 'rsn' | 'bor-gr' | 'stats'
 
 const CARDS: { id: ActivePanel; icon: string; title: string; desc: string }[] = [
   { id: 'upload', icon: '📁', title: 'SAP Input Data', desc: 'Upload SAP Data.' },
-  { id: 'idoc', icon: '📋', title: 'BOR and GR Message Status', desc: "Find status of BOR and GR IDoc's." },
   { id: 'cid', icon: '🔎', title: 'Correlation ID Processing Status', desc: 'Look up Correlation ID processing status.' },
   { id: 'rsn', icon: '✅', title: 'RSN Status', desc: 'Verify the receipt of RSN into SAP ECC.' },
+  { id: 'idoc', icon: '📋', title: 'BOR and GR Message Status', desc: "Find status of BOR and GR IDoc's." },
   { id: 'bor-gr', icon: '⚠️', title: 'BOR / GR Mismatch', desc: 'Detect mismatches between BOR confirmations and Goods Receipts.' },
   { id: 'stats', icon: '📊', title: 'Stats Dashboard', desc: 'Key metrics — BOR and GR received counts and more.' },
 ];
